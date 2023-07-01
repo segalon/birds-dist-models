@@ -138,16 +138,3 @@ cfg_catboost = {
     'survey_years': [2018, 2019, 2020],
 }
 
-cfg_catboost['features'] = cfg_catboost['features_cont'] + cfg_catboost['features_cat']
-
-cfg_maxent = copy.deepcopy(cfg_catboost)
-
-cfg_lgr = {
-    'features_cont': features_cont,
-    #'features_cat': ['rock_name'],
-    'features_cat': [],
-    'survey_years': [2018, 2019, 2020],
-}
-cfg_lgr['features'] = cfg_lgr['features_cont'] + cfg_lgr['features_cat']
-
-species_to_keep = ["אלימון", "חנקן גדול", "מדברון", "צחיחנית מדבר"]

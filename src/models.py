@@ -7,7 +7,6 @@ import shap
 
 import seaborn as sns
 
-
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import make_column_transformer
@@ -32,12 +31,10 @@ pandas2ri.activate()
 base = importr('base')
 maxent = importr('dismo')
 
-
 #DEBUG = True
 DEBUG = False
 
 SEED = 5
-
 
 class CategoricalToString(BaseEstimator, TransformerMixin):
     def __init__(self, features_cat):

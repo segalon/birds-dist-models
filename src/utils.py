@@ -43,7 +43,6 @@ from sklearn.metrics import average_precision_score
 from sklearn.metrics import precision_recall_curve
 
 
-
 #DEBUG = True
 DEBUG = False
 
@@ -92,127 +91,78 @@ def read_negev():
     return df_negev
 
 
-"""
-Preprocess the data:
-- select the relevant columns from survery data: remove irrelevant columns from the survey data such as the birder's name, the exact hour,
-    the bird genders,  landuse_name/id, as it has only one value(open area), etc
 
-- remove non-point count observations(may cause bias, e.g for the varialbe distance to road)
-- select the relevant GIS columns: removing columns with duplicated meaning, such as keeping the category name and removing the id column of the category
-- Add hebrew columns for plotting(now the function doesn't return these
-- adds the following variables:
-    - conservation_rank: ordinal variable, the rank of conservation in it's numeric order.
-    - threatened: binary variable, whether the species is threatened or not
-    - bird_observed: binary variable, whether a bird was observed or not in the survey point
-
-Returns:
-    - df_birds_obs_only: a dataframe with only the points where a bird was observed
-    - df_all: a dataframe with all the points, including the points where no bird was observed
-"""
-
-
-def preproc(df, to_impute = True, df_ar=None):
+def preproc(df_survey, to_impute = True, df_ar=None):
 
     cols_to_select = vars_survey + vars_gis + vars_ndvi
-    df = df[cols_to_select]
-    df['date'] = pd.to_datetime(df['date'])
-    df['month'] = df['date'].dt.month
-    df = df[df.obs_type == "point count"]
-    df = df[df.distance != 'תעופה']
-    df = df.loc[:, ~df.columns.str.contains('obs_type|presence')]
-    df['reserve_status'] = df['reserve_status'].fillna("לא שמורה")
-    df['reserve_name'] = df['reserve_name'].fillna("לא שמורה")
-    df['conservation_status'] = df['conservation_status'].fillna("LC")
-    df['species_'] = df['species'].str[::-1]
-    df['reserve_status_'] = df['reserve_status'].str[::-1]
-    df['reserve_name_'] = df['reserve_name'].str[::-1]
-    df['is_fire_zone_'] = df['is_fire_zone'].str[::-1]
-    df['from_hour'] = pd.to_datetime(df['from_hour']).dt.hour
-    df['to_hour'] = pd.to_datetime(df['to_hour']).dt.hour
-    df = df[df.conservation_status != "DD"]
+    df_survey['date'] = pd.to_datetime(df_survey['date'])
+    df_survey['month'] = df_survey['date'].dt.month
+    df_survey['year'] = df_survey['date'].dt.year
 
     convs_map = pd.DataFrame({'status_name': ['LC', 'NT', 'VU', 'EN', 'CR'], 'status_rank': [1, 2, 3, 4, 5]})
-    df['conservation_rank'] = df['conservation_status'].map(convs_map.set_index('status_name')['status_rank'])
+    df_survey['conservation_rank'] = df_survey['conservation_status'].map(convs_map.set_index('status_name')['status_rank'])
      
     convs_map_2 = pd.DataFrame({'status_name': ['LC', 'NT', 'VU', 'EN', 'CR'], 
                                 'status_full_name': ['Least Concerned', 'Near Threatened', 'Vulnerable', 'Endangered', 'Critically Endangered']})
 
-    df['conservation_status_full'] = df['conservation_status'].map(convs_map_2.set_index('status_name')['status_full_name'])
-    df['threatened'] = df['conservation_status'].isin(['VU', 'EN', 'CR']).astype(int).astype('category')
+    df_survey['conservation_status_full'] = df_survey['conservation_status'].map(convs_map_2.set_index('status_name')['status_full_name'])
+    #df['threatened'] = df['conservation_status'].isin(['VU', 'EN', 'CR']).astype(int).astype('category')
 
-    df['is_fire_zone'] = df['is_fire_zone'].replace({'כן': 1, 'לא': 0})
-    df['is_nature_reserve'] = df['is_nature_reserve'].replace({'כן': 1, 'לא': 0})
+    df_survey['year'] = df_survey['year'].astype('category')
 
-    df['reserve_status'] = (df['reserve_status'].replace( 
-        {'מוכרז': 'declared_reservation', 
-         'לא שמורה': 'not_reserved', 
-         'מוצע': 'proposed_reservation'})
-         .astype('category') )
+    df_survey = df_survey.rename(columns={'latitude': 'y', 'longitude': 'x'})
 
-    df['year'] = df['year'].astype('category')
+    if "ndvi" in df_survey.columns:
+        df_survey['ndvi'] = df_survey['ndvi'].astype(float)
+        df_survey['ndvi'] = df_survey.groupby(['x', 'y'])['ndvi'].transform('mean')
 
-    cols = df.columns.tolist()
-    cols_not_gis = [col for col in cols if col not in vars_gis]
+    df_survey['bird_observed'] = ~df_survey['species'].isna()
 
-    df = df[cols_not_gis + vars_gis]
-
-    df = df.rename(columns={'latitude': 'y', 'longitude': 'x'})
-
-    df['ndvi'] = df['ndvi'].astype(float)
-    df['ndvi'] = df.groupby(['x', 'y'])['ndvi'].transform('mean')
-
-    df['bird_observed'] = ~df['species'].isna()
-
-    df = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df.x, df.y))
-
-    df = df.rename(columns=vars_gis_new_names)
-    vars_time = ['month', 'date']
-    df = df[vars_survey + vars_gis_selection + vars_time + vars_ndvi]
+    df_survey = gpd.GeoDataFrame(df_survey, geometry=gpd.points_from_xy(df_survey.x, df_survey.y))
 
     if to_impute:
-        df = impute_using_nearest_neighbor(df, df_ar, vars_gis_cont + vars_gis_cat)
+        df_survey = impute_using_nearest_neighbor(df_survey, df_ar, vars_gis_cont + vars_gis_cat)
 
-    df_all = df.copy()
-    df_all = df_all.reset_index(drop=True)
+    df_survey = df_survey.copy()
+    df_survey = df_survey.reset_index(drop=True)
 
-    df_birds_obs_only = df[~df.species.isna()]
-    df_birds_obs_only = df_birds_obs_only.reset_index(drop=True)
+    df_spc_obs_only = df_survey[~df_survey.species.isna()]
+    df_spc_obs_only = df_spc_obs_only.reset_index(drop=True)
 
-    return df_birds_obs_only, df_all
+    return df_spc_obs_only, df_survey
 
 
-def impute_using_nearest_neighbor(df_cls, df_ar, vars_to_impute):
-    df_ar['centroid'] = df_ar['geometry'].apply(lambda x: x.centroid)
-    df_ar['x'] = df_ar['centroid'].apply(lambda x: x.x)
-    df_ar['y'] = df_ar['centroid'].apply(lambda x: x.y)
+def impute_using_nearest_neighbor(df_survey, df_all, vars_to_impute):
+    df_all['centroid'] = df_all['geometry'].apply(lambda x: x.centroid)
+    df_all['x'] = df_all['centroid'].apply(lambda x: x.x)
+    df_all['y'] = df_all['centroid'].apply(lambda x: x.y)
 
     nn = NearestNeighbors(n_neighbors=1)
-    nn.fit(df_ar[['x', 'y']])
+    nn.fit(df_all[['x', 'y']])
 
     for var in vars_to_impute:
-        if df_cls[var].isnull().any():
-            missing_rows = df_cls[var].isnull()
-            nearest_indices = nn.kneighbors(df_cls.loc[missing_rows, ['x', 'y']], return_distance=False).flatten()
-            df_cls.loc[missing_rows, var] = df_ar.iloc[nearest_indices][var].values
-    return df_cls
+        if df_survey[var].isnull().any():
+            missing_rows = df_survey[var].isnull()
+            nearest_indices = nn.kneighbors(df_survey.loc[missing_rows, ['x', 'y']], return_distance=False).flatten()
+            df_survey.loc[missing_rows, var] = df_all.iloc[nearest_indices][var].values
+    return df_survey
 
 
-def make_single_bird_labels(df_cls, spc=None):
-    df_cls = df_cls.copy()
+def make_single_bird_labels(df_survey, spc=None):
+    df_survey = df_survey.copy()
 
-    labels = np.where(df_cls['species'].isin(spc), 1, 0).reshape(-1, 1)
-    df_cls['label'] = labels
+    labels = np.where(df_survey['species'].isin(spc), 1, 0).reshape(-1, 1)
+    df_survey['label'] = labels
 
-    df_cls = (
-        df_cls
+    df_survey = (
+        df_survey
         .sort_values(by=['x', 'y', 'year', 'label'], ascending=False)
         .drop_duplicates(subset=['x', 'y', 'year'], keep='first')
         .reset_index(drop=True)
         )
     
-    labels = df_cls['label'].values.reshape(-1, 1)
-    return df_cls, labels
-
+    labels = df_survey['label'].values.reshape(-1, 1)
+    return df_survey, labels
 
 def preproc_for_model(df_cls, df_arava, cfg):
 

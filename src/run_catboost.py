@@ -10,7 +10,6 @@ from src.config import features
 
 df_birds, df_cls, df_ar = load_data()
 
-
 features_cont = features['cont']['ndvi'] + \
     features['cont']['topography']
 

@@ -56,8 +56,8 @@ def load_data():
         df_ar_sub = gpd.read_file('data/df_ar_sub_ndvi.geojson')
 
     else:
-        path_arava_data = "data/dbo.arava_polygon_w_biogis_layers.xlsx"
-        df_arava_orig = pd.read_excel(path_arava_data)
+        path_all_area_data = "data/dbo.arava_polygon_w_biogis_layers.xlsx"
+        df_arava_orig = pd.read_excel(path_all_area_data)
         df_arava = df_arava_orig.copy()
         df_arava['geometry'] = df_arava['cell_coords'].apply(wkt.loads)
         df_arava = df_arava.drop(columns=['cell_coords'])
@@ -80,17 +80,6 @@ def load_data():
     return df_birds, df_cls, df_ar, shm_negev
 
 
-def read_negev():
-    # unzip the file
-    # with zipfile.ZipFile("GIS_data/Nafot.zip","r") as zip_ref:
-    #     zip_ref.extractall("GIS_data/")
-    
-    df_negev = gpd.read_file("GIS_data/נפות ישראל.shp")
-    df_negev = df_negev[df_negev['Nafa'] == "באר שבע"]
-    df_negev = df_negev.to_crs(epsg=4326)
-    return df_negev
-
-
 
 def preproc(df_survey, to_impute = True, df_ar=None):
 
@@ -106,7 +95,6 @@ def preproc(df_survey, to_impute = True, df_ar=None):
                                 'status_full_name': ['Least Concerned', 'Near Threatened', 'Vulnerable', 'Endangered', 'Critically Endangered']})
 
     df_survey['conservation_status_full'] = df_survey['conservation_status'].map(convs_map_2.set_index('status_name')['status_full_name'])
-    #df['threatened'] = df['conservation_status'].isin(['VU', 'EN', 'CR']).astype(int).astype('category')
 
     df_survey['year'] = df_survey['year'].astype('category')
 
@@ -350,86 +338,6 @@ def plot_dot_whisker(coefs_stats, figsize=(5,6), dpi=100):
     #return fig, ax
     return fig
 
-def plot_feature_on_map(df_ar, df_birds, variable, spc=None, plot_all_survey_points=False, 
-                        buffer_distance=0.01, 
-                        resolution=100,
-                        figsize=(10,10), 
-                        #dpi=100,
-                        to_save=True):
-    df_birds = gpd.GeoDataFrame(df_birds, geometry=gpd.points_from_xy(df_birds.x, df_birds.y))
-
-    # Calculate centroids and create interpolation grid
-    df_ar['centroid'] = df_ar.geometry.centroid
-    x = np.array([pt.x for pt in df_ar.centroid])
-    y = np.array([pt.y for pt in df_ar.centroid])
-    z = df_ar[variable].values
-    xi, yi = np.mgrid[min(x):max(x):resolution*1j, min(y):max(y):resolution*1j]
-
-    # Perform linear interpolation
-    zi = griddata((x, y), z, (xi, yi), method='linear')
-    
-    # Plot interpolated data
-    fig, ax = plt.subplots(figsize=figsize)#, dpi=dpi)
-    cs = ax.contourf(xi, yi, zi, cmap='viridis', levels=1000)
-
-    fig.colorbar(cs, ax=ax)
-
-    if spc:
-        # only with the species
-        df_birds_spc = df_birds.query('species == @spc')
-        df_birds_spc.plot(ax=ax, marker='o', color='red', markersize=5)
-        if plot_all_survey_points:
-            df_birds.query('species != @spc').plot(ax=ax, marker='o', color='pink', markersize=3)
-    else:
-        # plot all survey points
-        df_birds.plot(ax=ax, marker='o', color='red', markersize=3)
-
-    plt.title(variable + " heatmap", fontsize=20)
-    plt.show()
-
-
-def plot_categorical_feature_on_map(df_ar, df_birds, variable, spc=None, plot_all_survey_points=False, 
-                                   buffer_distance=0.01, 
-                                   resolution=100,
-                                   to_save=True,
-                                   cmap='tab10'):
-
-    df_birds = gpd.GeoDataFrame(df_birds, geometry=gpd.points_from_xy(df_birds.x, df_birds.y))
-
-    df_ar[variable] = df_ar[variable].astype('category')
-
-    # Calculate centroids and create interpolation grid
-    df_ar['centroid'] = df_ar.geometry.centroid
-    x = np.array([pt.x for pt in df_ar.centroid])
-    y = np.array([pt.y for pt in df_ar.centroid])
-    z = df_ar[variable].astype('category').cat.codes.values
-    xi, yi = np.mgrid[min(x):max(x):resolution*1j, min(y):max(y):resolution*1j]
-
-    zi = griddata((x, y), z, (xi, yi), method='linear')
-    
-    # Plot interpolated data
-    fig, ax = plt.subplots(figsize=(10, 10))
-    cs = ax.contourf(xi, yi, zi, cmap=cmap, levels=np.arange(len(df_ar[variable].cat.categories)+1)-0.5)
-    fig.colorbar(cs, ax=ax, ticks=np.arange(len(df_ar[variable].cat.categories)), format=plt.FuncFormatter(lambda val, loc: df_ar[variable].cat.categories[int(val)]))
-
-    if spc:
-        # only with the species
-        df_birds_spc = df_birds.query('species == @spc')
-        df_birds_spc.plot(ax=ax, marker='o', color='red', markersize=5)
-        if plot_all_survey_points:
-            df_birds.query('species != @spc').plot(ax=ax, marker='o', color='pink', markersize=3)
-    else:
-        df_birds.plot(ax=ax, marker='o', color='white', markersize=3)
-
-    # title of variable
-    plt.title(variable + " heatmap", fontsize=20)
-    if to_save:
-        plt.savefig("plots/" + variable + "_heatmap.png")
-
-    else:
-        plt.show()
-
-    return fig
 
 def get_spc_info(df_birds, spc):
     df_spc = df_birds.query('species in @spc').reset_index(drop=True)
@@ -532,7 +440,7 @@ def cross_validate_per_species(model_class, df, species_list, cfg, test_size=0.2
                  'train_auc', 'val_auc',
                  'train_precision', 'val_precision',
                  'train_recall', 'val_recall',
-                    'train_log_loss', 'val_log_loss'  
+                 'train_log_loss', 'val_log_loss'
                  ]
     )
 
@@ -588,77 +496,5 @@ def cross_validate_per_species(model_class, df, species_list, cfg, test_size=0.2
         }, ignore_index=True)
 
     return results
-
-
-def train_and_plot_roc_curve(models, df, species, test_size=0.4, random_state=None):
-
-    plt.figure()
-
-    for model_dict_iter in models.items():
-        model_dict = model_dict_iter[1]
-        cfg = model_dict['cfg']
-        cfg['species'] = [species]
-        X, y, _ = preproc_for_model(df.copy(), None, cfg=cfg)
-        X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=test_size, random_state=random_state)
-        model_class = model_dict['model_class']
-        model = model_class(cfg=cfg)
-        model.fit(X_train, y_train)
-
-        y_pred_proba = model.predict_proba(X_val)
-        fpr, tpr, _ = roc_curve(y_val, y_pred_proba)
-        roc_auc = auc(fpr, tpr)
-        
-        model_name = model_class.__name__.replace('ModelBird', '')
-        plt.plot(fpr, tpr, lw=2, label='{} ({:.2f})'.format(model_name, roc_auc))
-
-    plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
-    plt.xlim([0.0, 1.0])
-    plt.ylim([0.0, 1.05])
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.title('ROC Curve for {}'.format(cfg['species'][0][::-1]))
-    plt.legend(loc="lower right")
-    plt.show()
-
-    return model
-
-
-def train_and_plot_precision_recall_curve(models, df, species, test_size=0.4, random_state=None):
-
-    plt.figure()
-
-    for model_dict_iter in models.items():
-        model_dict = model_dict_iter[1]
-        cfg = model_dict['cfg']
-        cfg['species'] = [species]
-        X, y, _ = preproc_for_model(df.copy(), None, cfg=cfg)
-        X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=test_size, random_state=random_state)
-        model_class = model_dict['model_class']
-        model = model_class(cfg=cfg)
-        model.fit(X_train, y_train)
-
-        y_pred_proba = model.predict_proba(X_val)
-
-        precision, recall, _ = precision_recall_curve(y_val, y_pred_proba)
-
-        model_name = model_class.__name__.replace('ModelBird', '')
-
-        auc = average_precision_score(y_val, y_pred_proba)
-
-        plt.plot(recall, precision, lw=2, label='{} ({:.2f})'.format(model_name, auc))
-
-    plt.xlim([0.0, 1.0])
-    plt.ylim([0.0, 1.05])
-    plt.xlabel('Recall')
-    plt.ylabel('Precision')
-    plt.title('Precision Recall Curve for {}'.format(cfg['species'][0][::-1]))
-    plt.legend(loc="lower right")
-    plt.show()
-
-    return model
-
-
-
-
 
 

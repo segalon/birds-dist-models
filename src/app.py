@@ -22,7 +22,7 @@ def save_results(df_res, path="results/probas_model.csv"):
     # TODO: maybe mkdir if needed
     df_res.to_csv(path, index=False)
 
-def process_and_display_results(cfg, df_res, df_ar, df_birds, models_list=None):
+def process_and_display_results(cfg, df_res, df_out, df_birds, models_list=None):
 
     years = cfg['survey_years']
 
@@ -33,7 +33,7 @@ def process_and_display_results(cfg, df_res, df_ar, df_birds, models_list=None):
 
     fig_map, ax_map = plot_probas_on_map(
                     df_res=df_res,
-                    df_ar=df_ar,
+                    df_out=df_out,
                     df_birds=df_birds.query('year in @years'),
                     spc_list=cfg['species'],
                     resolution=500,
@@ -53,7 +53,7 @@ def process_and_display_results(cfg, df_res, df_ar, df_birds, models_list=None):
 
 st.title("Species distribution model")
 
-df_birds, df_cls, df_ar, shm_negev = load_data()
+df_birds, df_cls, df_out, shm_negev = load_data()
 
 min_obs = 3
 df_birds = df_birds.groupby('species').filter(lambda x: len(x) >= min_obs)
@@ -190,7 +190,7 @@ aggregation_type = "Treat separately"
 if aggregation_type == "Group together":
     #model = ModelBirdLogisticRegression(to_scale=True, to_ohe=False, cfg=cfg)
     model = model_class(to_scale=True, to_ohe=False, cfg=cfg)
-    res = run_exp(model, df_cls, df_ar, cfg=cfg)
+    res = run_exp(model, df_cls, df_out, cfg=cfg)
     probas_list = [res['y_pred_arv']]
     models_list = None
 else:  # Treat separately
@@ -201,7 +201,7 @@ else:  # Treat separately
         cfg_single_species['species'] = [species]
         # if model_class == ModelBirdLogisticRegression:
         model_single_species = model_class(to_scale=True, cfg=cfg_single_species)
-        res_single_species = run_exp(model_single_species, df_cls, df_ar, cfg=cfg_single_species)
+        res_single_species = run_exp(model_single_species, df_cls, df_out, cfg=cfg_single_species)
         probas_list.append(res_single_species['y_pred_arv'])
         models_list.append(model_single_species)
     probas_list = np.array(probas_list)
@@ -212,22 +212,13 @@ if aggregation_type == "Treat separately":
 else:
     probas = probas_list[0]
 
-df_ar_probas = df_ar.copy()
-df_ar_probas['pred_proba'] = probas
-
-# Calculate centroids and create interpolation grid
-df_ar_probas['centroid'] = df_ar_probas.geometry.centroid
-x = np.array([pt.x for pt in df_ar_probas.centroid])
-y = np.array([pt.y for pt in df_ar_probas.centroid])
-
 probas = probas_list.mean(axis=0)
-df_res = df_ar.copy()
+df_res = df_out.copy()
 df_res['pred_proba'] = probas
 df_res['x'] = df_res['geometry'].apply(lambda x: x.centroid.x)
 df_res['y'] = df_res['geometry'].apply(lambda x: x.centroid.y)
 df_res = df_res[['x', 'y', 'pred_proba']]
 
 save_results(df_res)
-
-process_and_display_results(cfg, df_cls, df_ar, df_birds, probas_list, aggregation_type, models_list)
+process_and_display_results(cfg, df_cls, df_out, df_birds, models_list)
 

@@ -152,7 +152,7 @@ def make_single_bird_labels(df_survey, spc=None):
     labels = df_survey['label'].values.reshape(-1, 1)
     return df_survey, labels
 
-def preproc_for_model(df_cls, df_arava, cfg):
+def preproc_for_model(df_cls, df_out, cfg):
 
     df_cls = df_cls.copy()
 
@@ -172,18 +172,18 @@ def preproc_for_model(df_cls, df_arava, cfg):
         if X_train[col].dtype == 'object':
             X_train[col] = X_train[col].astype('category')
 
-    if df_arava is not None:
-        df_arava = df_arava.copy().reset_index(drop=True)
+    if df_out is not None:
+        df_out = df_out.copy().reset_index(drop=True)
 
-        if 'year' in df_arava.columns:
-            df_arava = df_arava.query('year in @survey_years').reset_index(drop=True)
+        if 'year' in df_out.columns:
+            df_out = df_out.query('year in @survey_years').reset_index(drop=True)
 
-        df_arava = df_arava.loc[:, features]
-        for col in df_arava.columns:
-            if df_arava[col].dtype == 'object':
-                df_arava[col] = df_arava[col].astype('category')
+        df_out = df_out.loc[:, features]
+        for col in df_out.columns:
+            if df_out[col].dtype == 'object':
+                df_out[col] = df_out[col].astype('category')
     
-    return X_train, y_train, df_arava
+    return X_train, y_train, df_out
 
 def run_exp(model, 
             df_cls, 
@@ -220,11 +220,11 @@ def run_exp_for_each_species(model, df_cls, df_ar, cfg):
 
 
 def plot_probas_on_map(df_res,
-                       df_ar,
-                       df_birds, 
+                       df_out,
+                       df_birds,
                        spc_list=None,
-                       figsize=(10, 10), 
-                       resolution=100, 
+                       figsize=(10, 10),
+                       resolution=100,
                        plot_other_species=False,
                        plot_nature_reserves=False,
                        shm_negev=None,
@@ -292,7 +292,7 @@ def plot_probas_on_map(df_res,
 
         ax.legend(handles=patches, bbox_to_anchor=(-0.5, 1), loc='upper left', borderaxespad=0.)
 
-        xmin, ymin, xmax, ymax = df_ar.total_bounds
+        xmin, ymin, xmax, ymax = df_out.total_bounds
         ax.set_xlim([xmin, xmax])
         ax.set_ylim([ymin, ymax])
 

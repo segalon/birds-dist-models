@@ -219,33 +219,24 @@ def run_exp_for_each_species(model, df_cls, df_ar, cfg):
     return res
 
 
-def plot_probas_on_map(df_ar, 
+def plot_probas_on_map(df_res,
+                       df_ar,
                        df_birds, 
-                       probas_list, 
-                       spc_list=None, 
+                       spc_list=None,
                        figsize=(10, 10), 
                        resolution=100, 
-                       aggregation_type="Group together",
                        plot_other_species=False,
                        plot_nature_reserves=False,
                        shm_negev=None,
                        ):
     df_birds = gpd.GeoDataFrame(df_birds, geometry=gpd.points_from_xy(df_birds.x, df_birds.y))
 
-    if aggregation_type == "Treat separately":
-        probas = np.mean(probas_list, axis=0)
-
-    else:
-        probas = probas_list[0]
-
-    df_ar_probas = df_ar.copy()
-    df_ar_probas['pred_proba'] = probas
 
     # Calculate centroids and create interpolation grid
-    df_ar_probas['centroid'] = df_ar_probas.geometry.centroid
-    x = np.array([pt.x for pt in df_ar_probas.centroid])
-    y = np.array([pt.y for pt in df_ar_probas.centroid])
-    z = df_ar_probas['pred_proba'].values
+    df_res['centroid'] = df_res.geometry.centroid
+    x = np.array([pt.x for pt in df_res.centroid])
+    y = np.array([pt.y for pt in df_res.centroid])
+    z = df_res['pred_proba'].values
     xi, yi = np.mgrid[min(x):max(x):resolution*1j, min(y):max(y):resolution*1j]
 
     # Perform IDW interpolation
@@ -263,12 +254,9 @@ def plot_probas_on_map(df_ar,
                               label="chosen species")
         if plot_other_species:
             df_birds_other = df_birds.query('species not in @spc_list')
-            # and also not the same coordinates as the chosen species
             df_birds_other = df_birds_other.query('x not in @df_birds_spc.x and y not in @df_birds_spc.y')
             df_birds_other.plot(ax=ax, marker='o', color='white', markersize=0.5,
                                 alpha=0.5, label='other species')
-
-        # set legend
         ax.legend()
 
     else:

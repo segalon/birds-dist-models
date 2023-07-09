@@ -18,7 +18,11 @@ def plot_feature_relevance(model, model_name):
     elif model_name == "Logistic Regression":
         return plot_dot_whisker(model.model)
 
-def process_and_display_results(cfg, df_cls, df_ar, df_birds, probas_list, aggregation_type, models_list=None):
+def save_results(df_res, path="results/probas_model.csv"):
+    # TODO: maybe mkdir if needed
+    df_res.to_csv(path, index=False)
+
+def process_and_display_results(cfg, df_res, df_ar, df_birds, models_list=None):
 
     years = cfg['survey_years']
 
@@ -28,12 +32,11 @@ def process_and_display_results(cfg, df_cls, df_ar, df_birds, probas_list, aggre
     st.table(df_spc_info)
 
     fig_map, ax_map = plot_probas_on_map(
+                    df_res=df_res,
                     df_ar=df_ar,
                     df_birds=df_birds.query('year in @years'),
-                    probas_list=probas_list,
                     spc_list=cfg['species'],
                     resolution=500,
-                    aggregation_type=aggregation_type,
                     plot_other_species=True,
                     plot_nature_reserves=plot_nature_reserves,
                     shm_negev=shm_negev)
@@ -203,6 +206,28 @@ else:  # Treat separately
         models_list.append(model_single_species)
     probas_list = np.array(probas_list)
 
+
+if aggregation_type == "Treat separately":
+    probas = np.mean(probas_list, axis=0)
+else:
+    probas = probas_list[0]
+
+df_ar_probas = df_ar.copy()
+df_ar_probas['pred_proba'] = probas
+
+# Calculate centroids and create interpolation grid
+df_ar_probas['centroid'] = df_ar_probas.geometry.centroid
+x = np.array([pt.x for pt in df_ar_probas.centroid])
+y = np.array([pt.y for pt in df_ar_probas.centroid])
+
+probas = probas_list.mean(axis=0)
+df_res = df_ar.copy()
+df_res['pred_proba'] = probas
+df_res['x'] = df_res['geometry'].apply(lambda x: x.centroid.x)
+df_res['y'] = df_res['geometry'].apply(lambda x: x.centroid.y)
+df_res = df_res[['x', 'y', 'pred_proba']]
+
+save_results(df_res)
 
 process_and_display_results(cfg, df_cls, df_ar, df_birds, probas_list, aggregation_type, models_list)
 

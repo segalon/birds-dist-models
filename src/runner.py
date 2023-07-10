@@ -15,6 +15,7 @@ spc = "אלימון"
 
 cfg = {
     'species': [spc],
+    'features': features['cont'] + features['cat'],
     'features_cont': features['cont'],
     'features_cat': features['cat'],
     'survey_years': [2020, 2019, 2018]
@@ -33,7 +34,6 @@ model = ModelBirdLogisticRegression(to_scale=True,
 res = run_exp(model,
               df_cls,
               df_out,
-              spc=[spc],
               cfg=cfg,
               with_arava_preds=False)
 

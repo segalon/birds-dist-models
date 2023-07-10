@@ -83,14 +83,10 @@ st.title("Species distribution model")
 #df_spc, df_cls, df_out, feature_names, shm_negev = load_data()
 shm_negev = None
 
-df_spc, df_cls, df_out, feature_names = load_data()
+df_spc, df_cls, df_out, feature_names, reserves = load_data()
 
 min_obs = 3
 df_spc = df_spc.groupby('species').filter(lambda x: len(x) >= min_obs)
-
-
-
-
 
 feature_types = infer_feature_types(df_spc[feature_names])
 # TODO: veg_cover is is wrong
@@ -206,8 +202,9 @@ else:
 variables_cat = selected_cat_vars
 
 
-# for plotting nature reserves 
-plot_nature_reserves = st.checkbox("Plot nature reserves", value=False)
+if reserves is not None:
+    plot_nature_reserves = st.checkbox("Plot nature reserves", value=False)
+
 plot_feature_importance = st.checkbox("Plot feature importance", value=False)
 
 
@@ -222,7 +219,6 @@ cfg = {
     'survey_years': selected_years,
     'model_name': selected_model,
 }
-
 
 years = cfg['survey_years']
 

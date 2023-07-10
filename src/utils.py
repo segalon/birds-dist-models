@@ -66,10 +66,16 @@ def load_data():
 
     # df_orig = pd.read_csv(data_wt_gis_path)
     df_spc,  df_survey = preproc(df_survey, feature_names, to_impute=True, df_geo=df_geo)
-    #shm_negev = gpd.read_file('data/shm_negev.shp')
+
+    # reserves = gpd.read_file('data/reserves.shp')
+    # try to read this file, if doesnt exist set it to None
+    try:
+        reserves = gpd.read_file('data/reserves.shp')
+    except:
+        reserves = None
 
     # return df_spc, df_survey, df_geo, shm_negev
-    return df_spc, df_survey, df_geo, feature_names
+    return df_spc, df_survey, df_geo, feature_names, reserves
 
 
 

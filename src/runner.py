@@ -4,8 +4,7 @@ from src.utils import *
 from src.config import *
 
 
-
-df_spc, df_cls, df_out, feature_names = load_data()
+df_spc, df_cls, df_out, feature_names, reserves = load_data()
 
 features = {
     'cont': feature_names,

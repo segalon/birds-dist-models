@@ -61,6 +61,14 @@ def process_and_display_results(cfg, df_res, df_out, df_spc, models_list=None):
 st.title("Species distribution model")
 
 df_spc, df_cls, df_out, feature_names, reserves = load_data()
+# TODO
+# print the rows with the null values and drop them, and
+
+# the null values rows in df_out
+print("Rows with null values in df_out, dropping them")
+print(df_out[df_out.isnull().any(axis=1)])
+
+df_out = df_out.dropna()
 
 min_obs = 3
 df_spc = df_spc.groupby('species').filter(lambda x: len(x) >= min_obs)
@@ -204,6 +212,8 @@ years = cfg['survey_years']
 
 aggregation_type = "Treat separately"
 
+to_ohe = len(variables_cat) > 0
+
 if aggregation_type == "Group together":
     model = model_class(to_scale=True, to_ohe=False, cfg=cfg)
     res = run_exp(model, df_cls, df_out, cfg=cfg)
@@ -216,14 +226,20 @@ else:  # Treat separately
         cfg_single_species = cfg.copy()
         cfg_single_species['species'] = [species]
         # if model_class == ModelBirdLogisticRegression:
-        model_single_species = model_class(to_scale=True, cfg=cfg_single_species)
+        model_single_species = model_class(to_scale=True, to_ohe=to_ohe, cfg=cfg_single_species)
         res_single_species = run_exp(model_single_species, df_cls, df_out, cfg=cfg_single_species)
         probas_list.append(res_single_species['y_pred_out'])
         models_list.append(model_single_species)
     probas_list = np.array(probas_list)
 
+# remove nulls from df_out, based on all cols
+# countnas
+# df_out.isna().sum(axis=1).value_counts()
 
 probas = np.mean(probas_list, axis=0)
+# reset index
+print(len(probas))
+print(df_out.shape)
 
 df_res = df_out.copy()
 df_res['pred_proba'] = probas

@@ -206,8 +206,6 @@ class ModelBirdMaxEnt(ModelBird):
         self.model_r = None
         self.fimps = None
 
-
-
     def fit(self, X, y):
         X = self.transformer.fit_transform(X)
         # Get column names from the transformer

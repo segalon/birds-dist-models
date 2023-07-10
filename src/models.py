@@ -218,7 +218,6 @@ class ModelBirdMaxEnt(ModelBird):
 
         self.X_with_colnames = pd.DataFrame(X, columns=column_names)
 
-        # Create a dataframe with the correct column names
         X = pd.DataFrame(X)
         X_r = pandas2ri.py2rpy(X)
         y_r = robjects.IntVector(y)

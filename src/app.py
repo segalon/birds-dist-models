@@ -12,8 +12,6 @@ os.chdir(path)
 
 # TODO: need to specify what are the categorical and continuous features
 
-
-import pandas as pd
 import numpy as np
 
 
@@ -61,10 +59,7 @@ def process_and_display_results(cfg, df_res, df_out, df_spc, models_list=None):
 st.title("Species distribution model")
 
 df_spc, df_cls, df_out, feature_names, reserves = load_data()
-# TODO
-# print the rows with the null values and drop them, and
 
-# the null values rows in df_out
 print("Rows with null values in df_out, dropping them")
 print(df_out[df_out.isnull().any(axis=1)])
 
@@ -97,9 +92,6 @@ elif selected_model == 'Logistic Regression':
 elif selected_model == 'MaxEnt':
     model_class = ModelBirdMaxEnt
 
-
-
-# filter the available species by the selected years
 available_years = df_spc['year'].unique()
 selected_years = st.multiselect(
     'Select survery years',
@@ -164,6 +156,9 @@ else:
 
 variables_cont = selected_cont_vars
 
+if len(variables_cont) == 0:
+    st.stop()
+
 st.write("Selected categorical variables:")
 
 models_with_cats = ['CatBoost', 'MaxEnt']
@@ -172,10 +167,10 @@ if selected_model in models_with_cats:
 else:
     value = False
 
-
-#features = features
 variables_cat = features['cat']
 
+if len(variables_cat) == 0:
+    st.stop()
 
 cat_vars_container = st.container()
 all_cat_vars = st.checkbox("Select all categorical variables")
@@ -209,7 +204,6 @@ cfg = {
 
 years = cfg['survey_years']
 
-
 aggregation_type = "Treat separately"
 
 to_ohe = len(variables_cat) > 0
@@ -225,21 +219,13 @@ else:  # Treat separately
     for species in selected_species:
         cfg_single_species = cfg.copy()
         cfg_single_species['species'] = [species]
-        # if model_class == ModelBirdLogisticRegression:
         model_single_species = model_class(to_scale=True, to_ohe=to_ohe, cfg=cfg_single_species)
         res_single_species = run_exp(model_single_species, df_cls, df_out, cfg=cfg_single_species)
         probas_list.append(res_single_species['y_pred_out'])
         models_list.append(model_single_species)
     probas_list = np.array(probas_list)
 
-# remove nulls from df_out, based on all cols
-# countnas
-# df_out.isna().sum(axis=1).value_counts()
-
 probas = np.mean(probas_list, axis=0)
-# reset index
-print(len(probas))
-print(df_out.shape)
 
 df_res = df_out.copy()
 df_res['pred_proba'] = probas
@@ -249,9 +235,7 @@ df_res = df_res[['x', 'y', 'geometry', 'pred_proba']]
 df_res_to_save = df_res[['x', 'y', 'pred_proba']]
 
 save_results(df_res)
-#process_and_display_results(cfg, df_cls, df_out, df_spc, models_list)
 process_and_display_results(cfg, df_res, df_out, df_spc, models_list)
 
-# process_and_display_results(cfg, df_res, df_out, df_birds, models_list=None):
 
 

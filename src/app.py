@@ -9,6 +9,8 @@ import os
 path = "/Users/user/projects-uni/birds-dist-model"
 os.chdir(path)
 
+# TODO: need to specify what are the categorical and continuous features
+
 def plot_feature_relevance(model, model_name):
     """
     Plot the feature relevance of the model.
@@ -52,10 +54,12 @@ def process_and_display_results(cfg, df_res, df_out, df_birds, models_list=None)
 
 st.title("Species distribution model")
 
-df_birds, df_cls, df_out, shm_negev = load_data()
+#df_birds, df_cls, df_out, shm_negev = load_data()
+#df_spc, df_cls, df_out, shm_negev = load_data()
+df_spc, df_cls, df_out, features = load_data()
 
 min_obs = 3
-df_birds = df_birds.groupby('species').filter(lambda x: len(x) >= min_obs)
+df_spc = df_spc.groupby('species').filter(lambda x: len(x) >= min_obs)
 
 variables = features.copy()
 
@@ -78,7 +82,7 @@ elif selected_model == 'MaxEnt':
 
 
 # filter the available species by the selected years
-available_years = df_birds['year'].unique()
+available_years = df_spc['year'].unique()
 selected_years = st.multiselect(
     'Select survery years',
     available_years)
@@ -88,10 +92,10 @@ if len(selected_years) == 0:
     #st.write("Please select years")
     st.stop()
 
-df_birds = df_birds.query('year in @selected_years')
+df_spc = df_spc.query('year in @selected_years')
 
 
-available_ranks = df_birds['conservation_status'].unique()
+available_ranks = df_spc['conservation_status'].unique()
 container_ranks = st.container()
 all_ranks = st.checkbox("Select all conservation ranks")
 
@@ -99,7 +103,7 @@ if all_ranks:
     selected_ranks = container_ranks.multiselect("Select conservation rank:", 
         available_ranks, available_ranks)
 else:
-    selected_ranks =  container_ranks.multiselect("Select conservation rank:",
+    selected_ranks = container_ranks.multiselect("Select conservation rank:",
         available_ranks)
     
 if len(selected_ranks) == 0:
@@ -109,7 +113,7 @@ if len(selected_ranks) == 0:
 
 # filter the available species by the selected years
 available_species = (
-    df_birds
+    df_spc
     .query('year in @selected_years')
     .query('conservation_status in @selected_ranks')
 )
@@ -212,5 +216,5 @@ df_res['y'] = df_res['geometry'].apply(lambda x: x.centroid.y)
 df_res = df_res[['x', 'y', 'pred_proba']]
 
 save_results(df_res)
-process_and_display_results(cfg, df_cls, df_out, df_birds, models_list)
+process_and_display_results(cfg, df_cls, df_out, df_spc, models_list)
 

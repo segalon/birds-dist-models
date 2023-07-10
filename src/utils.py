@@ -42,7 +42,6 @@ from sklearn.metrics import roc_auc_score
 from sklearn.metrics import average_precision_score
 from sklearn.metrics import precision_recall_curve
 
-
 #DEBUG = True
 DEBUG = False
 
@@ -53,8 +52,10 @@ def load_data():
     to_read_file = True
 
     df_geo = gpd.read_file('data/df_geo.geojson')
-    df_survey_feats = pd.read_csv('data/survey_features.csv')
     df_survey = pd.read_csv('data/survey_data.csv')
+    df_survey_feats = pd.read_csv('data/survey_features.csv')
+
+    feature_names = df_survey_feats.columns.tolist()
 
     df_survey = pd.concat([df_survey, df_survey_feats], axis=1)
 
@@ -68,7 +69,7 @@ def load_data():
     #shm_negev = gpd.read_file('data/shm_negev.shp')
 
     # return df_spc, df_survey, df_geo, shm_negev
-    return df_spc, df_survey, df_geo
+    return df_spc, df_survey, df_geo, feature_names
 
 
 

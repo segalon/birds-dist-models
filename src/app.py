@@ -46,7 +46,7 @@ def process_and_display_results(cfg, df_res, df_out, df_spc, models_list=None):
                     resolution=500,
                     plot_other_species=True,
                     plot_nature_reserves=plot_nature_reserves,
-                    shm_negev=shm_negev)
+                    reserves=reserves)
    
     st.pyplot(fig_map)
     if plot_feature_importance:
@@ -59,9 +59,6 @@ def process_and_display_results(cfg, df_res, df_out, df_spc, models_list=None):
 
 
 st.title("Species distribution model")
-
-#df_spc, df_cls, df_out, feature_names, shm_negev = load_data()
-shm_negev = None
 
 df_spc, df_cls, df_out, feature_names, reserves = load_data()
 

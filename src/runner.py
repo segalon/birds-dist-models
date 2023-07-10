@@ -43,9 +43,13 @@ if cfg['features_cat']:
 else:
     to_ohe = False
 
-model = ModelBirdLogisticRegression(to_scale=True,
-                                    to_ohe=to_ohe,
-                                    cfg=cfg)
+# model = ModelBirdLogisticRegression(to_scale=True,
+#                                     to_ohe=to_ohe,
+#                                     cfg=cfg)
+
+model = ModelBirdMaxEnt(to_scale=True,
+                        to_ohe=to_ohe,
+                        cfg=cfg)
 
 # model = ModelBirdMaxEnt(to_scale=True,
 #                         to_ohe=True,

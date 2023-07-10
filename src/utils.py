@@ -67,14 +67,11 @@ def load_data():
     # df_orig = pd.read_csv(data_wt_gis_path)
     df_spc,  df_survey = preproc(df_survey, feature_names, to_impute=True, df_geo=df_geo)
 
-    # reserves = gpd.read_file('data/reserves.shp')
-    # try to read this file, if doesnt exist set it to None
     try:
         reserves = gpd.read_file('data/reserves.shp')
     except:
         reserves = None
 
-    # return df_spc, df_survey, df_geo, shm_negev
     return df_spc, df_survey, df_geo, feature_names, reserves
 
 
@@ -225,7 +222,7 @@ def plot_probas_on_map(df_res,
                        resolution=100,
                        plot_other_species=False,
                        plot_nature_reserves=False,
-                       shm_negev=None,
+                       reserves=None,
                        ):
     df_spc = gpd.GeoDataFrame(df_spc, geometry=gpd.points_from_xy(df_spc.x, df_spc.y))
 
@@ -260,31 +257,31 @@ def plot_probas_on_map(df_res,
         # plot all survey points
         df_spc.plot(ax=ax, marker='o', color='pink', markersize=3)
 
-    if plot_nature_reserves and shm_negev is not None:
+    if plot_nature_reserves and reserves is not None:
 
         colors = ['brown', 'hotpink', 'white', 'coral']  # replace with the actual colors
         cmap = ListedColormap(colors)
 
-        status_to_color = {status: color for status, color in zip(shm_negev['STATUS_DES'].unique(), colors)}
+        status_to_color = {status: color for status, color in zip(reserves['STATUS_DES'].unique(), colors)}
 
         # Create a new column in the DataFrame mapping each 'STATUS_DES' value to its corresponding color
-        shm_negev['color'] = shm_negev['STATUS_DES'].map(status_to_color)
-        shm_negev['color'] = shm_negev['color'].fillna('black')
+        reserves['color'] = reserves['STATUS_DES'].map(status_to_color)
+        reserves['color'] = reserves['color'].fillna('black')
 
-        shm_negev.boundary.plot(ax=ax, edgecolor=shm_negev['color'], linewidth=2.0,
-                                linestyle='--', alpha=0.6)
+        reserves.boundary.plot(ax=ax, edgecolor=reserves['color'], linewidth=2.0,
+                               linestyle='--', alpha=0.6)
 
-        shm_negev_fill = shm_negev.copy()
-        shm_negev_fill['STATUS_DES'] = 'a'
+        reserves = reserves.copy()
+        reserves['STATUS_DES'] = 'a'
 
-        shm_negev_fill.plot(ax=ax,
-                       edgecolor=shm_negev_fill['color'],
+        reserves.plot(ax=ax,
+                       edgecolor=reserves['color'],
                        column='STATUS_DES',
                        alpha=0.03,
                        color="white"
                        )
 
-        color_mapping = dict(zip(shm_negev['STATUS_DES'].unique(), shm_negev['color'].unique()))
+        color_mapping = dict(zip(reserves['STATUS_DES'].unique(), reserves['color'].unique()))
         patches = [mpatches.Patch(color=color, label=label) for label, color in color_mapping.items()]
 
         ax.legend(handles=patches, bbox_to_anchor=(-0.5, 1), loc='upper left', borderaxespad=0.)

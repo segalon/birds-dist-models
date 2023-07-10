@@ -177,13 +177,13 @@ def preproc_for_model(df_cls, df_out, cfg):
     
     return X_train, y_train, df_out
 
-def run_exp(model, 
-            df_cls, 
-            df_arava, 
+def run_exp(model,
+            df_cls,
+            df_out,
             cfg=None,
             with_arava_preds=True):
 
-    X_train, y_train, df_arava = preproc_for_model(df_cls, df_arava, cfg)
+    X_train, y_train, df_out = preproc_for_model(df_cls, df_out, cfg)
 
     model = model.fit(X_train, y_train)
     y_pred_train = model.predict_proba(X_train)
@@ -192,9 +192,9 @@ def run_exp(model,
     features = cfg['features']
 
     if with_arava_preds:
-        X_arv = df_arava[features]
-        y_pred_arv = model.predict_proba(X_arv)
-        res['y_pred_arv'] = y_pred_arv
+        X_out = df_out[features]
+        y_pred_out = model.predict_proba(X_out)
+        res['y_pred_out'] = y_pred_out
 
     res['y_pred_train'] = y_pred_train
     res['model'] = model

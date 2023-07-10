@@ -6,6 +6,7 @@ from src.config import *
 import streamlit as st
 import os 
 
+# TODO do not hardcode this
 path = "/Users/user/projects-uni/birds-dist-model"
 os.chdir(path)
 
@@ -54,14 +55,24 @@ def process_and_display_results(cfg, df_res, df_out, df_birds, models_list=None)
 
 st.title("Species distribution model")
 
-#df_birds, df_cls, df_out, shm_negev = load_data()
-#df_spc, df_cls, df_out, shm_negev = load_data()
-df_spc, df_cls, df_out, features = load_data()
+#df_spc, df_cls, df_out, feature_names, shm_negev = load_data()
+df_spc, df_cls, df_out, feature_names = load_data()
 
 min_obs = 3
 df_spc = df_spc.groupby('species').filter(lambda x: len(x) >= min_obs)
 
-variables = features.copy()
+
+# TODO: modify later, for now only continuous features
+# need to specify from the outside or infer locally feature types
+# maybe by streamlit selectbox
+#
+
+features = {
+    'cont': feature_names,
+    'cat': []
+}
+
+
 
 # -------- Streamlit code --------
 
@@ -94,7 +105,6 @@ if len(selected_years) == 0:
 
 df_spc = df_spc.query('year in @selected_years')
 
-
 available_ranks = df_spc['conservation_status'].unique()
 container_ranks = st.container()
 all_ranks = st.checkbox("Select all conservation ranks")
@@ -109,7 +119,6 @@ else:
 if len(selected_ranks) == 0:
     #st.write("Please select conservation ranks")
     st.stop()
-
 
 # filter the available species by the selected years
 available_species = (
@@ -142,9 +151,9 @@ st.subheader("Select continuous variables")
 cont_vars_container = st.container()
 all_cont_vars = st.checkbox("Select all continuous variables")
 if all_cont_vars:
-    selected_cont_vars = cont_vars_container.multiselect("Continuous variables", variables['cont'], variables['cont'])
+    selected_cont_vars = cont_vars_container.multiselect("Continuous variables", features['cont'], features['cont'])
 else:
-    selected_cont_vars = cont_vars_container.multiselect("Continuous variables", variables['cont'])
+    selected_cont_vars = cont_vars_container.multiselect("Continuous variables", features['cont'])
 
 variables_cont = selected_cont_vars
 
@@ -158,8 +167,8 @@ else:
     value = False
 
 
-variables = features
-variables_cat = variables['cat']
+features = features
+variables_cat = features['cat']
 
 #variables_cat = selected_soil_variables + selected_topography_cat_variables + selected_ecosystem_variables
 
@@ -191,7 +200,7 @@ aggregation_type = "Treat separately"
 if aggregation_type == "Group together":
     model = model_class(to_scale=True, to_ohe=False, cfg=cfg)
     res = run_exp(model, df_cls, df_out, cfg=cfg)
-    probas_list = [res['y_pred_arv']]
+    probas_list = [res['y_pred_out']]
     models_list = None
 else:  # Treat separately
     probas_list = []
@@ -202,7 +211,7 @@ else:  # Treat separately
         # if model_class == ModelBirdLogisticRegression:
         model_single_species = model_class(to_scale=True, cfg=cfg_single_species)
         res_single_species = run_exp(model_single_species, df_cls, df_out, cfg=cfg_single_species)
-        probas_list.append(res_single_species['y_pred_arv'])
+        probas_list.append(res_single_species['y_pred_out'])
         models_list.append(model_single_species)
     probas_list = np.array(probas_list)
 

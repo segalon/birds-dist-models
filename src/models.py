@@ -239,7 +239,6 @@ class ModelBirdMaxEnt(ModelBird):
         preds_py = np.array(preds)
         return preds_py
 
-
     def predict(self, X):
         """
         Predict bird presence using the maxent model.
@@ -253,11 +252,11 @@ class ModelBirdMaxEnt(ModelBird):
     def summary(self):
         return self.model
 
-    def plot_feature_importances(self):
-        # todo get feature importances from maxent model itself
-        fig, ax = plt.subplots()
-
-        sns.barplot(x="importance", y="feature", data=self.df_fimp.sort_values(by="importance", ascending=False))
-
-        plt.tight_layout()
-        return fig
+    # def plot_feature_importances(self):
+    #     # todo get feature importances from maxent model itself
+    #     fig, ax = plt.subplots()
+    #
+    #     sns.barplot(x="importance", y="feature", data=self.df_fimp.sort_values(by="importance", ascending=False))
+    #
+    #     plt.tight_layout()
+    #     return fig

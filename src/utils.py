@@ -52,38 +52,29 @@ SEED = 5
 def load_data():
     to_read_file = True
 
-    if to_read_file:
-        df_ar_sub = gpd.read_file('data/df_ar_sub_ndvi.geojson')
+    df_geo = gpd.read_file('data/df_geo.geojson')
+    df_survey_feats = pd.read_csv('data/survey_features.csv')
+    df_survey = pd.read_csv('data/survey_data.csv')
 
-    else:
-        path_all_area_data = "data/dbo.arava_polygon_w_biogis_layers.xlsx"
-        df_arava_orig = pd.read_excel(path_all_area_data)
-        df_arava = df_arava_orig.copy()
-        df_arava['geometry'] = df_arava['cell_coords'].apply(wkt.loads)
-        df_arava = df_arava.drop(columns=['cell_coords'])
-        df_arava = gpd.GeoDataFrame(df_arava, geometry='geometry')
-        df_arava.crs = {'init' :'epsg:2039'}
-        df_arava = df_arava.to_crs(epsg=4326)
-        df_arava = df_arava.rename(columns=vars_gis_new_names)
-        df_arava = df_arava.dropna()
-        df_ar_sub = df_arava.sample(50000)
-        df_ar_sub.to_file("data/df_ar_sub.geojson")
-    df_ar = df_ar_sub.copy()
-    df_ar['human_impact'] = df_ar['human_impact'].fillna(0)
-    df_ar = df_ar.dropna()
+    df_survey = pd.concat([df_survey, df_survey_feats], axis=1)
 
-    df_orig = pd.read_csv(data_wt_gis_path)
-    df_birds,  df_cls = preproc(df_orig, to_impute=True, df_ar=df_ar)
+    # df_ar = df_ar_sub.copy()
+    # df_ar['human_impact'] = df_ar['human_impact'].fillna(0)
+    # df_ar = df_ar.dropna()
 
-    shm_negev = gpd.read_file('data/shm_negev.shp')
 
-    return df_birds, df_cls, df_ar, shm_negev
+    # df_orig = pd.read_csv(data_wt_gis_path)
+    df_spc,  df_survey = preproc(df_survey, to_impute=True, df_geo=df_geo)
+    #shm_negev = gpd.read_file('data/shm_negev.shp')
+
+    # return df_spc, df_survey, df_geo, shm_negev
+    return df_spc, df_survey, df_geo
 
 
 
-def preproc(df_survey, to_impute = True, df_ar=None):
+def preproc(df_survey, to_impute = True, df_geo=None):
 
-    cols_to_select = vars_survey + vars_gis + vars_ndvi
+    #cols_to_select = vars_survey + vars_gis + vars_ndvi
     df_survey['date'] = pd.to_datetime(df_survey['date'])
     df_survey['month'] = df_survey['date'].dt.month
     df_survey['year'] = df_survey['date'].dt.year
@@ -104,12 +95,12 @@ def preproc(df_survey, to_impute = True, df_ar=None):
         df_survey['ndvi'] = df_survey['ndvi'].astype(float)
         df_survey['ndvi'] = df_survey.groupby(['x', 'y'])['ndvi'].transform('mean')
 
-    df_survey['bird_observed'] = ~df_survey['species'].isna()
+    df_survey['species_observed'] = ~df_survey['species'].isna()
 
     df_survey = gpd.GeoDataFrame(df_survey, geometry=gpd.points_from_xy(df_survey.x, df_survey.y))
 
     if to_impute:
-        df_survey = impute_using_nearest_neighbor(df_survey, df_ar, vars_gis_cont + vars_gis_cat)
+        df_survey = impute_using_nearest_neighbor(df_survey, df_geo, features)
 
     df_survey = df_survey.copy()
     df_survey = df_survey.reset_index(drop=True)
@@ -299,7 +290,6 @@ def plot_probas_on_map(df_res,
     # set title
     title = "Probability for bird presence"
     ax.set_title(title)
-
     return fig, ax
 
 

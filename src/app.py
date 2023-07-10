@@ -6,7 +6,7 @@ from src.config import *
 import streamlit as st
 import os 
 
-path = "/Users/user/projects-uni/birds-conservation"
+path = "/Users/user/projects-uni/birds-dist-model"
 os.chdir(path)
 
 def plot_feature_relevance(model, model_name):
@@ -25,7 +25,6 @@ def save_results(df_res, path="results/probas_model.csv"):
 def process_and_display_results(cfg, df_res, df_out, df_birds, models_list=None):
 
     years = cfg['survey_years']
-
     df_birds = df_birds.query('year in @years')
     df_spc_info = get_spc_info(df_birds, cfg['species'])
 
@@ -88,7 +87,6 @@ selected_years = st.multiselect(
 if len(selected_years) == 0:
     #st.write("Please select years")
     st.stop()
-
 
 df_birds = df_birds.query('year in @selected_years')
 
@@ -186,9 +184,7 @@ years = cfg['survey_years']
 
 aggregation_type = "Treat separately"
 
-
 if aggregation_type == "Group together":
-    #model = ModelBirdLogisticRegression(to_scale=True, to_ohe=False, cfg=cfg)
     model = model_class(to_scale=True, to_ohe=False, cfg=cfg)
     res = run_exp(model, df_cls, df_out, cfg=cfg)
     probas_list = [res['y_pred_arv']]
@@ -207,12 +203,8 @@ else:  # Treat separately
     probas_list = np.array(probas_list)
 
 
-if aggregation_type == "Treat separately":
-    probas = np.mean(probas_list, axis=0)
-else:
-    probas = probas_list[0]
+probas = np.mean(probas_list, axis=0)
 
-probas = probas_list.mean(axis=0)
 df_res = df_out.copy()
 df_res['pred_proba'] = probas
 df_res['x'] = df_res['geometry'].apply(lambda x: x.centroid.x)

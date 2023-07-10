@@ -1,19 +1,17 @@
 
-from src.models import *
-from src.utils import *
-from src.config import *
-
+import numpy as np
 import streamlit as st
-import os 
+import os
+
+from src.utils import *
 
 # TODO do not hardcode this
 path = "/Users/user/projects-uni/birds-dist-model"
 os.chdir(path)
 
+
+
 # TODO: need to specify what are the categorical and continuous features
-
-import numpy as np
-
 
 def plot_feature_relevance(model, model_name):
     """
@@ -97,9 +95,7 @@ selected_years = st.multiselect(
     'Select survery years',
     available_years)
 
-
 if len(selected_years) == 0:
-    #st.write("Please select years")
     st.stop()
 
 df_spc = df_spc.query('year in @selected_years')
@@ -145,7 +141,6 @@ if len(selected_species) == 0:
     st.stop()
 
 st.subheader("Select continuous variables")
-
 
 cont_vars_container = st.container()
 all_cont_vars = st.checkbox("Select all continuous variables")

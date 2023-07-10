@@ -154,7 +154,6 @@ class ModelBirdCatBoost(ModelBird):
         Catboost model for bird species distribution.
         """
         # no need for scaling or one-hot encoding
-
         super().__init__(to_scale=to_scale, to_ohe=to_ohe, cfg=cfg, drop_cats=drop_cats)
         self.cat_features = self.cfg['features_cat']
         self.model = None

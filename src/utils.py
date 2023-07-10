@@ -65,7 +65,7 @@ def load_data():
 
 
     # df_orig = pd.read_csv(data_wt_gis_path)
-    df_spc,  df_survey = preproc(df_survey, to_impute=True, df_geo=df_geo)
+    df_spc,  df_survey = preproc(df_survey, feature_names, to_impute=True, df_geo=df_geo)
     #shm_negev = gpd.read_file('data/shm_negev.shp')
 
     # return df_spc, df_survey, df_geo, shm_negev
@@ -73,7 +73,7 @@ def load_data():
 
 
 
-def preproc(df_survey, to_impute = True, df_geo=None):
+def preproc(df_survey, feature_names, to_impute = True, df_geo=None):
 
     #cols_to_select = vars_survey + vars_gis + vars_ndvi
     df_survey['date'] = pd.to_datetime(df_survey['date'])
@@ -101,7 +101,7 @@ def preproc(df_survey, to_impute = True, df_geo=None):
     df_survey = gpd.GeoDataFrame(df_survey, geometry=gpd.points_from_xy(df_survey.x, df_survey.y))
 
     if to_impute:
-        df_survey = impute_using_nearest_neighbor(df_survey, df_geo, features)
+        df_survey = impute_using_nearest_neighbor(df_survey, df_geo, feature_names)
 
     df_survey = df_survey.copy()
     df_survey = df_survey.reset_index(drop=True)

@@ -33,3 +33,5 @@ res = run_exp(model,
               spc=spc,
               cfg=cfg,
               with_arava_preds=False)
+
+print("ran model")

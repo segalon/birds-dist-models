@@ -56,6 +56,8 @@ def process_and_display_results(cfg, df_res, df_out, df_birds, models_list=None)
 st.title("Species distribution model")
 
 #df_spc, df_cls, df_out, feature_names, shm_negev = load_data()
+shm_negev = None
+
 df_spc, df_cls, df_out, feature_names = load_data()
 
 min_obs = 3

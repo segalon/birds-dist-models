@@ -204,6 +204,8 @@ variables_cat = selected_cat_vars
 
 if reserves is not None:
     plot_nature_reserves = st.checkbox("Plot nature reserves", value=False)
+else:
+    plot_nature_reserves = False
 
 plot_feature_importance = st.checkbox("Plot feature importance", value=False)
 

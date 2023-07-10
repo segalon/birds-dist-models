@@ -6,8 +6,16 @@ from src.config import *
 
 df_spc, df_cls, df_out, feature_names, reserves = load_data()
 
+feature_types = infer_feature_types(df_spc[feature_names])
+# TODO: veg_cover is is wrong
+
+features = {}
+
+features['cont'] = [f for f in feature_names if feature_types[f] == 'Continuous']
+features['cat'] = [f for f in feature_names if feature_types[f] == 'Categorical']
+
 features = {
-    'cont': feature_names,
+    'cont': features['cont'][:4],
     'cat': []
 }
 
@@ -28,9 +36,20 @@ drop_cats = {'reserve_states': 'not_reserved'}
 #                                     drop_categories=drop_cats,
 #                                     default_drop="first")
 
+
+
+if cfg['features_cat']:
+    to_ohe = True
+else:
+    to_ohe = False
+
 model = ModelBirdLogisticRegression(to_scale=True,
-                                    to_ohe=True,
+                                    to_ohe=to_ohe,
                                     cfg=cfg)
+
+# model = ModelBirdMaxEnt(to_scale=True,
+#                         to_ohe=True,
+#                         cfg=cfg)
 res = run_exp(model,
               df_cls,
               df_out,

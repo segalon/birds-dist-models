@@ -476,3 +476,23 @@ def cross_validate_per_species(model_class, df, species_list, cfg, test_size=0.2
     return results
 
 
+def infer_feature_types(df, unique_threshold=0.1):
+    inferred_types = {}
+
+    for column in df.columns:
+        unique_count = len(df[column].unique())
+        total_count = len(df[column])
+
+        # If the feature is numeric
+        if pd.api.types.is_numeric_dtype(df[column]):
+            # And the ratio of unique values to total values is above the threshold
+            if unique_count / total_count > unique_threshold:
+                inferred_types[column] = 'Continuous'
+            else:
+                inferred_types[column] = 'Categorical'
+        # If feature is not numeric (e.g., object, bool, datetime64)
+        else:
+            inferred_types[column] = 'Categorical'
+
+    return inferred_types
+

@@ -425,11 +425,8 @@ def cross_validate_per_species(model_class, df, species_list, cfg, test_size=0.2
     # Iterate over each species
     for species in species_list:
         print(species)
-        # modify cfg
         cfg['species'] = [species]
 
-        # this preprocessing doesn't involve functions which 
-        # need to be computed separately for train, it is later in the fit
         X, y, _ = preproc_for_model(df, None, cfg=cfg)
         X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=test_size, random_state=SEED)
 
@@ -442,17 +439,14 @@ def cross_validate_per_species(model_class, df, species_list, cfg, test_size=0.2
         train_log_loss = log_loss(y_train, model.predict_proba(X_train).astype(np.float64))
         val_log_loss = log_loss(y_val, model.predict_proba(X_val).astype(np.float64))
 
-        # Compute precision and recall for train set
         y_train_pred = model.predict(X_train)
         train_precision = precision_score(y_train, y_train_pred)
         train_recall = recall_score(y_train, y_train_pred)
 
-        # Compute precision and recall for validation set
         y_val_pred = model.predict(X_val)
         val_precision = precision_score(y_val, y_val_pred)
         val_recall = recall_score(y_val, y_val_pred)
 
-        # num samples refers to the positive class, i.e. the target species
         num_train = np.sum(y_train == 1)
         num_val = np.sum(y_val == 1)
         num_total = num_train + num_val

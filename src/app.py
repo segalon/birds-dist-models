@@ -89,19 +89,11 @@ min_obs = 3
 df_spc = df_spc.groupby('species').filter(lambda x: len(x) >= min_obs)
 
 
-# TODO: modify later, for now only continuous features
-# need to specify from the outside or infer locally feature types
-# maybe by streamlit selectbox
-#
-
-# features = {
-#     'cont': feature_names,
-#     'cat': []
-# }
 
 
 
 feature_types = infer_feature_types(df_spc[feature_names])
+# TODO: veg_cover is is wrong
 
 features = {}
 

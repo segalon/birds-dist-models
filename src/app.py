@@ -12,6 +12,31 @@ os.chdir(path)
 
 # TODO: need to specify what are the categorical and continuous features
 
+
+import pandas as pd
+import numpy as np
+
+def infer_feature_types(df, unique_threshold=0.1):
+    inferred_types = {}
+
+    for column in df.columns:
+        unique_count = len(df[column].unique())
+        total_count = len(df[column])
+
+        # If the feature is numeric
+        if pd.api.types.is_numeric_dtype(df[column]):
+            # And the ratio of unique values to total values is above the threshold
+            if unique_count / total_count > unique_threshold:
+                inferred_types[column] = 'Continuous'
+            else:
+                inferred_types[column] = 'Categorical'
+        # If feature is not numeric (e.g., object, bool, datetime64)
+        else:
+            inferred_types[column] = 'Categorical'
+
+    return inferred_types
+
+
 def plot_feature_relevance(model, model_name):
     """
     Plot the feature relevance of the model.
@@ -69,12 +94,19 @@ df_spc = df_spc.groupby('species').filter(lambda x: len(x) >= min_obs)
 # maybe by streamlit selectbox
 #
 
-features = {
-    'cont': feature_names,
-    'cat': []
-}
+# features = {
+#     'cont': feature_names,
+#     'cat': []
+# }
 
 
+
+feature_types = infer_feature_types(df_spc[feature_names])
+
+features = {}
+
+features['cont'] = [f for f in feature_names if feature_types[f] == 'Continuous']
+features['cat'] = [f for f in feature_names if feature_types[f] == 'Categorical']
 
 # -------- Streamlit code --------
 
@@ -161,7 +193,6 @@ variables_cont = selected_cont_vars
 
 st.write("Selected categorical variables:")
 
-
 models_with_cats = ['CatBoost', 'MaxEnt']
 if selected_model in models_with_cats:
     value = True
@@ -169,11 +200,18 @@ else:
     value = False
 
 
-features = features
+#features = features
 variables_cat = features['cat']
 
-#variables_cat = selected_soil_variables + selected_topography_cat_variables + selected_ecosystem_variables
 
+cat_vars_container = st.container()
+all_cat_vars = st.checkbox("Select all categorical variables")
+if all_cat_vars:
+    selected_cat_vars = cat_vars_container.multiselect("Categorical variables", features['cat'], features['cat'])
+else:
+    selected_cat_vars = cat_vars_container.multiselect("Categorical variables", features['cat'])
+
+variables_cat = selected_cat_vars
 
 
 # for plotting nature reserves 

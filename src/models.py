@@ -20,11 +20,9 @@ from catboost import CatBoostClassifier
 
 from sklearn.utils.class_weight import compute_class_weight
 
-import rpy2
 import rpy2.robjects as robjects
-from rpy2.robjects import pandas2ri, numpy2ri
+from rpy2.robjects import pandas2ri
 from rpy2.robjects.packages import importr
-from rpy2.robjects import r
 
 pandas2ri.activate()
 

@@ -16,21 +16,25 @@ spc = "אלימון"
 
 cfg = {
     'species': [spc],
-    'features_cont': feature_names['cont'],
-    'features_cat': feature_names['cat'],
+    'features_cont': features['cont'],
+    'features_cat': features['cat'],
     'survey_years': [2020, 2019, 2018]
 }
 
 drop_cats = {'reserve_states': 'not_reserved'}
+# model = ModelBirdLogisticRegression(to_scale=True,
+#                                     to_ohe=True,
+#                                     cfg=cfg,
+#                                     drop_categories=drop_cats,
+#                                     default_drop="first")
+
 model = ModelBirdLogisticRegression(to_scale=True,
                                     to_ohe=True,
-                                    cfg=cfg,
-                                    drop_categories=drop_cats,
-                                    default_drop="first")
+                                    cfg=cfg)
 res = run_exp(model,
               df_cls,
               df_out,
-              spc=spc,
+              spc=[spc],
               cfg=cfg,
               with_arava_preds=False)
 

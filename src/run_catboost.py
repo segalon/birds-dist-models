@@ -36,11 +36,11 @@ y_pred_arava = model.predict_proba(df_ar_t)[:, 1]
 years = cfg['survey_years']
 
 plot_probas_on_map(df_ar,
-                    df_birds=df_birds.query('year in @years'),
-                    probas_list=[y_pred_arava],
-                    spc_list=cfg['species'],
-                    plot_all_survey_points=False,
-                    resolution=500)
+                   df_spc=df_birds.query('year in @years'),
+                   probas_list=[y_pred_arava],
+                   spc_list=cfg['species'],
+                   plot_all_survey_points=False,
+                   resolution=500)
 # plot on arava
 
 # load from csv

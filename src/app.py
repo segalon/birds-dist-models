@@ -25,18 +25,18 @@ def save_results(df_res, path="results/probas_model.csv"):
     # TODO: maybe mkdir if needed
     df_res.to_csv(path, index=False)
 
-def process_and_display_results(cfg, df_res, df_out, df_birds, models_list=None):
+def process_and_display_results(cfg, df_res, df_out, df_spc, models_list=None):
 
     years = cfg['survey_years']
-    df_birds = df_birds.query('year in @years')
-    df_spc_info = get_spc_info(df_birds, cfg['species'])
+    df_spc = df_spc.query('year in @years')
+    df_spc_info = get_spc_info(df_spc, cfg['species'])
 
     st.table(df_spc_info)
 
     fig_map, ax_map = plot_probas_on_map(
                     df_res=df_res,
                     df_out=df_out,
-                    df_birds=df_birds.query('year in @years'),
+                    df_spc=df_spc.query('year in @years'),
                     spc_list=cfg['species'],
                     resolution=500,
                     plot_other_species=True,
@@ -224,8 +224,13 @@ df_res = df_out.copy()
 df_res['pred_proba'] = probas
 df_res['x'] = df_res['geometry'].apply(lambda x: x.centroid.x)
 df_res['y'] = df_res['geometry'].apply(lambda x: x.centroid.y)
-df_res = df_res[['x', 'y', 'pred_proba']]
+df_res = df_res[['x', 'y', 'geometry', 'pred_proba']]
+df_res_to_save = df_res[['x', 'y', 'pred_proba']]
 
 save_results(df_res)
-process_and_display_results(cfg, df_cls, df_out, df_spc, models_list)
+#process_and_display_results(cfg, df_cls, df_out, df_spc, models_list)
+process_and_display_results(cfg, df_res, df_out, df_spc, models_list)
+
+# process_and_display_results(cfg, df_res, df_out, df_birds, models_list=None):
+
 

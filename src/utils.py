@@ -213,7 +213,7 @@ def run_exp_for_each_species(model, df_cls, df_ar, cfg):
 
 def plot_probas_on_map(df_res,
                        df_out,
-                       df_birds,
+                       df_spc,
                        spc_list=None,
                        figsize=(10, 10),
                        resolution=100,
@@ -221,8 +221,7 @@ def plot_probas_on_map(df_res,
                        plot_nature_reserves=False,
                        shm_negev=None,
                        ):
-    df_birds = gpd.GeoDataFrame(df_birds, geometry=gpd.points_from_xy(df_birds.x, df_birds.y))
-
+    df_spc = gpd.GeoDataFrame(df_spc, geometry=gpd.points_from_xy(df_spc.x, df_spc.y))
 
     # Calculate centroids and create interpolation grid
     df_res['centroid'] = df_res.geometry.centroid
@@ -241,11 +240,11 @@ def plot_probas_on_map(df_res,
 
     if spc_list:
         # only with the species
-        df_birds_spc = df_birds.query('species in @spc_list')
+        df_birds_spc = df_spc.query('species in @spc_list')
         p = df_birds_spc.plot(ax=ax, marker='o', color='red', markersize=6,
                               label="chosen species")
         if plot_other_species:
-            df_birds_other = df_birds.query('species not in @spc_list')
+            df_birds_other = df_spc.query('species not in @spc_list')
             df_birds_other = df_birds_other.query('x not in @df_birds_spc.x and y not in @df_birds_spc.y')
             df_birds_other.plot(ax=ax, marker='o', color='white', markersize=0.5,
                                 alpha=0.5, label='other species')
@@ -253,7 +252,7 @@ def plot_probas_on_map(df_res,
 
     else:
         # plot all survey points
-        df_birds.plot(ax=ax, marker='o', color='pink', markersize=3)
+        df_spc.plot(ax=ax, marker='o', color='pink', markersize=3)
 
     if plot_nature_reserves and shm_negev is not None:
 

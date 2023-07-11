@@ -1,13 +1,41 @@
-from sklearn.neighbors import NearestNeighbors
+import pandas as pd
 import geopandas as gpd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from plotnine import *
+import matplotlib.patches as mpatches
+
+import geopandas as gpd
+import matplotlib.pyplot as plt
+
+from sklearn.neighbors import NearestNeighbors
+
+import geopandas as gpd
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.interpolate import griddata
 
 import streamlit as st
 from src.models import *
 from src.utils import *
+from src.config import *
+
+from sklearn.model_selection import train_test_split
+
+from sklearn.model_selection import LeaveOneOut
 from sklearn.metrics import log_loss
+
 from matplotlib.colors import ListedColormap
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import plotly.io as pio
+from jinja2 import Template
+from shapely import wkt
 
 import matplotlib.pyplot as plt
+from sklearn.metrics import roc_curve, auc
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import precision_score, recall_score
 from sklearn.metrics import roc_auc_score
@@ -19,8 +47,6 @@ SEED = 5
 
 @st.cache_data
 def load_data():
-    to_read_file = True
-
     df_geo = gpd.read_file('data/df_geo.geojson')
     df_survey = pd.read_csv('data/survey_data.csv')
     df_survey_feats = pd.read_csv('data/survey_features.csv')
@@ -29,12 +55,6 @@ def load_data():
 
     df_survey = pd.concat([df_survey, df_survey_feats], axis=1)
 
-    # df_ar = df_ar_sub.copy()
-    # df_ar['human_impact'] = df_ar['human_impact'].fillna(0)
-    # df_ar = df_ar.dropna()
-
-
-    # df_orig = pd.read_csv(data_wt_gis_path)
     df_spc,  df_survey = preproc(df_survey, feature_names, to_impute=True, df_geo=df_geo)
 
     try:

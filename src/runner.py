@@ -4,7 +4,6 @@ from src.utils import *
 df_spc, df_cls, df_out, feature_names, reserves = load_data()
 
 feature_types = infer_feature_types(df_spc[feature_names])
-# TODO: veg_cover is is wrong
 
 features = {}
 

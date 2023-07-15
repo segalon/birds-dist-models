@@ -1,21 +1,17 @@
 import geopandas as gpd
-
 import matplotlib.patches as mpatches
-
-from sklearn.neighbors import NearestNeighbors
-
-from scipy.interpolate import griddata
-
-import streamlit as st
-from src.models import *
-
-from sklearn.metrics import log_loss
-
 from matplotlib.colors import ListedColormap
 
+from scipy.interpolate import griddata
+from sklearn.neighbors import NearestNeighbors
+from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import precision_score, recall_score
 from sklearn.metrics import roc_auc_score
+
+from src.models import *
+
+import streamlit as st
 
 #DEBUG = True
 DEBUG = False
@@ -40,7 +36,6 @@ def load_data():
         reserves = None
 
     return df_spc, df_survey, df_geo, feature_names, reserves
-
 
 
 def preproc(df_survey, feature_names, to_impute = True, df_geo=None):
@@ -181,6 +176,7 @@ def plot_probas_on_map(df_res,
                        plot_nature_reserves=False,
                        reserves=None,
                        ):
+
     df_spc = gpd.GeoDataFrame(df_spc, geometry=gpd.points_from_xy(df_spc.x, df_spc.y))
 
     # Calculate centroids and create interpolation grid
@@ -221,7 +217,6 @@ def plot_probas_on_map(df_res,
 
         status_to_color = {status: color for status, color in zip(reserves['STATUS_DES'].unique(), colors)}
 
-        # Create a new column in the DataFrame mapping each 'STATUS_DES' value to its corresponding color
         reserves['color'] = reserves['STATUS_DES'].map(status_to_color)
         reserves['color'] = reserves['color'].fillna('black')
 
@@ -247,7 +242,6 @@ def plot_probas_on_map(df_res,
         ax.set_xlim([xmin, xmax])
         ax.set_ylim([ymin, ymax])
 
-    # set title
     title = "Probability for bird presence"
     ax.set_title(title)
     return fig, ax
@@ -296,6 +290,7 @@ def get_spc_info(df_birds, spc):
     dfs['percent_in_year'] = dfs['percent_in_year'].round(2)
     return dfs
 
+
 def process_ndvi(df_gis, df_ar):
     print("Processing NDVI data...")
     df_gis = df_gis.copy()
@@ -316,8 +311,8 @@ def process_ndvi(df_gis, df_ar):
 
     df_ndvi_year = (
         df_ndvi
-        .assign(year_prev = lambda x: x.date.dt.year)
-        .assign(year = lambda x: x.date.dt.year + 1) # year to join to
+        .assign(year_prev=lambda x: x.date.dt.year)
+        .assign(year=lambda x: x.date.dt.year + 1)
         .groupby(["y", "x", "year"])
         .mean("ndvi")
         .reset_index(drop=False)

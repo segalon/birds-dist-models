@@ -1,8 +1,5 @@
 
-from src.models import *
 from src.utils import *
-from src.config import *
-
 
 df_spc, df_cls, df_out, feature_names, reserves = load_data()
 

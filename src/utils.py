@@ -44,7 +44,6 @@ def load_data():
 
 
 def preproc(df_survey, feature_names, to_impute = True, df_geo=None):
-
     df_survey['date'] = pd.to_datetime(df_survey['date'])
     df_survey['month'] = df_survey['date'].dt.month
     df_survey['year'] = df_survey['date'].dt.year
@@ -334,7 +333,6 @@ def process_ndvi(df_gis, df_ar):
         total_diff = y_diff + x_diff + date_diff
         return df_ndvi.loc[total_diff.idxmin(), 'ndvi']
 
-
     df_gis['date'] = pd.to_datetime(df_gis['date'])
 
     if DEBUG:
@@ -431,8 +429,10 @@ def cross_validate_per_species(model_class, df, species_list, cfg, test_size=0.2
 
 
 def infer_feature_types(df, unique_threshold=0.1):
+    known_cont_features = ['veg_cover']
     inferred_types = {}
 
+    # veg_cover should be a continuous feature
     for column in df.columns:
         unique_count = len(df[column].unique())
         total_count = len(df[column])
@@ -440,7 +440,7 @@ def infer_feature_types(df, unique_threshold=0.1):
         # If the feature is numeric
         if pd.api.types.is_numeric_dtype(df[column]):
             # And the ratio of unique values to total values is above the threshold
-            if unique_count / total_count > unique_threshold:
+            if unique_count / total_count > unique_threshold or column in known_cont_features:
                 inferred_types[column] = 'Continuous'
             else:
                 inferred_types[column] = 'Categorical'

@@ -1,11 +1,11 @@
 
+# TODO do not hardcode this
 import os
+path = "/Users/user/projects-uni/birds-dist-model"
+os.chdir(path)
 
 from src.utils import *
 
-# TODO do not hardcode this
-path = "/Users/user/projects-uni/birds-dist-model"
-os.chdir(path)
 
 
 # TODO: need to specify what are the categorical and continuous features
@@ -186,8 +186,6 @@ run_model = st.button("Run model")
 
 if not run_model:
     st.stop()
-
-
 
 # -------- / Streamlit code --------
 

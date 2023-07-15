@@ -24,7 +24,7 @@ def load_data():
     try:
         df_geo = gpd.read_file('data/df_geo.geojson')
     except:
-        # convert to the requiered format if not geojson already, r
+        # convert to the requiered format if not geojson already,
         # reading from csv
         df_geo = pd.read_csv('data/df_geo.csv')
         df_geo['geometry'] = df_geo.apply(lambda x: Point(x['longitude'], x['latitude']), axis=1)

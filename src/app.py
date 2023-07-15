@@ -1,9 +1,4 @@
 
-# TODO do not hardcode this
-import os
-path = "/Users/user/projects-uni/birds-dist-model"
-os.chdir(path)
-
 from src.utils import *
 
 
@@ -26,13 +21,15 @@ def save_results(df_res, path="results/probas_model.csv"):
 st.title("Species distribution model")
 
 df_spc, df_cls, df_out, feature_names, reserves = load_data()
+print(reserves)
 
 print("Rows with null values in df_out, dropping them")
 print(df_out[df_out.isnull().any(axis=1)])
 
 df_out = df_out.dropna()
 
-min_obs = 5
+#min_obs = 5
+min_obs = 20
 df_spc = df_spc.groupby('species').filter(lambda x: len(x) >= min_obs)
 
 feature_types = infer_feature_types(df_spc[feature_names])
@@ -143,7 +140,6 @@ else:
 
 variables_cat = selected_cat_vars
 
-
 if reserves is not None:
     plot_nature_reserves = st.checkbox("Plot nature reserves", value=False)
 else:
@@ -151,8 +147,17 @@ else:
 
 plot_feature_importance = st.checkbox("Plot feature importance", value=False)
 
+if len(selected_species) > 1:
+    agg_method = st.selectbox("Select aggregation method for multiple species",
+                              ['mean', 'max', 'min', 'median'],
+                              index=0)
+else:
+    agg_method = 'mean'
+
 # button for running the model
 run_model = st.button("Run model")
+
+
 
 if not run_model:
     st.stop()
@@ -191,7 +196,16 @@ else:  # Treat separately
         models_list.append(model_single_species)
     probas_list = np.array(probas_list)
 
-probas = np.mean(probas_list, axis=0)
+
+
+if agg_method == 'mean':
+    probas = np.mean(probas_list, axis=0)
+elif agg_method == 'max':
+    probas = np.max(probas_list, axis=0)
+elif agg_method == 'min':
+    probas = np.min(probas_list, axis=0)
+elif agg_method == 'median':
+    probas = np.median(probas_list, axis=0)
 
 df_res = df_out.copy()
 df_res['pred_proba'] = probas
@@ -231,7 +245,8 @@ if plot_feature_importance:
 
 df_res_to_save = df_res[['x', 'y', 'pred_proba']]
 # rename x and y to longitude and latitude
-df_res_to_save = df_res_to_save.rename(columns={'x': 'longitude', 'y': 'latitude'})
+df_res_to_save = df_res_to_save.rename(columns={'x': 'longitude', 'y': 'latitude',
+                                                'pred_proba': 'probability'})
 
 res_csv = df_res_to_save.to_csv(index=False)
 st.download_button(
@@ -241,9 +256,6 @@ st.download_button(
     mime="text/csv",
 )
 
-
-# Download button for the map
-# save map first
 fig_map.savefig("map.png")
 
 with open("map.png", "rb") as file:

@@ -36,8 +36,7 @@ def load_data():
 
     df_survey = pd.concat([df_survey, df_survey_feats], axis=1)
 
-    df_spc,  df_survey = preproc(df_survey, feature_names, to_impute=True, df_geo=df_geo)
-
+    df_spc, df_survey = preproc(df_survey, feature_names, to_impute=True, df_geo=df_geo)
     try:
         reserves = gpd.read_file('data/reserves.shp')
     except:
@@ -230,9 +229,6 @@ def plot_probas_on_map(df_res,
 
         reserves.boundary.plot(ax=ax, edgecolor=reserves['color'], linewidth=2.0,
                                linestyle='--', alpha=0.6)
-
-        reserves = reserves.copy()
-        reserves['STATUS_DES'] = 'a'
 
         reserves.plot(ax=ax,
                        edgecolor=reserves['color'],

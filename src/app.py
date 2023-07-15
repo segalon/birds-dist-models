@@ -8,7 +8,6 @@ path = "/Users/user/projects-uni/birds-dist-model"
 os.chdir(path)
 
 
-
 # TODO: need to specify what are the categorical and continuous features
 
 def plot_feature_relevance(model, model_name):
@@ -20,12 +19,13 @@ def plot_feature_relevance(model, model_name):
     elif model_name == "Logistic Regression":
         return plot_dot_whisker(model.model)
 
+
 def save_results(df_res, path="results/probas_model.csv"):
     # TODO: maybe mkdir if needed
     df_res.to_csv(path, index=False)
 
-def process_and_display_results(cfg, df_res, df_out, df_spc, models_list=None):
 
+def process_and_display_results(cfg, df_res, df_out, df_spc, models_list=None):
     years = cfg['survey_years']
     df_spc = df_spc.query('year in @years')
     df_spc_info = get_spc_info(df_spc, cfg['species'])
@@ -61,7 +61,7 @@ print(df_out[df_out.isnull().any(axis=1)])
 
 df_out = df_out.dropna()
 
-min_obs = 3
+min_obs = 5
 df_spc = df_spc.groupby('species').filter(lambda x: len(x) >= min_obs)
 
 feature_types = infer_feature_types(df_spc[feature_names])
@@ -110,7 +110,6 @@ else:
         available_ranks)
     
 if len(selected_ranks) == 0:
-    #st.write("Please select conservation ranks")
     st.stop()
 
 # filter the available species by the selected years
@@ -182,9 +181,15 @@ else:
 
 plot_feature_importance = st.checkbox("Plot feature importance", value=False)
 
+# button for running the model
+run_model = st.button("Run model")
+
+if not run_model:
+    st.stop()
+
+
 
 # -------- / Streamlit code --------
-
 
 cfg = {
     'species': selected_species,

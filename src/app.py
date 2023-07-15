@@ -4,9 +4,6 @@ import os
 path = "/Users/user/projects-uni/birds-dist-model"
 os.chdir(path)
 
-import zipfile
-import io
-
 from src.utils import *
 
 
@@ -26,7 +23,6 @@ def save_results(df_res, path="results/probas_model.csv"):
     # TODO: maybe mkdir if needed
     df_res.to_csv(path, index=False)
 
-
 st.title("Species distribution model")
 
 df_spc, df_cls, df_out, feature_names, reserves = load_data()
@@ -40,7 +36,6 @@ min_obs = 5
 df_spc = df_spc.groupby('species').filter(lambda x: len(x) >= min_obs)
 
 feature_types = infer_feature_types(df_spc[feature_names])
-# TODO: veg_cover is is wrong
 
 features = {}
 
@@ -202,10 +197,8 @@ df_res = df_out.copy()
 df_res['pred_proba'] = probas
 df_res['x'] = df_res['geometry'].apply(lambda x: x.centroid.x)
 df_res['y'] = df_res['geometry'].apply(lambda x: x.centroid.y)
-df_res = df_res[['x', 'y', 'geometry', 'pred_proba']]
-df_res_to_save = df_res[['x', 'y', 'pred_proba']]
 
-#save_results(df_res)
+df_res = df_res[['x', 'y', 'geometry', 'pred_proba']]
 
 years = cfg['survey_years']
 df_spc = df_spc.query('year in @years')
@@ -235,73 +228,28 @@ if plot_feature_importance:
             fig_fr = plot_feature_relevance(model, cfg['model_name'])
             st.pyplot(fig_fr)
 
-# Specify a save directory
-#save_dir = st.text_input("Enter the path where you want to save the results and the map:", "")
-download = st.button("Download results and map")
 
-# If download button is clicked, save results and map
-#if download and save_dir:
-# if download:
-#     print("Downloading results and map...")
-#     # Create in-memory CSV file
-#     csv_str = df_res.to_csv(index=False)
-#     csv_bytes = csv_str.encode()
-#
-#     # Create in-memory image file
-#     img_stream = io.BytesIO()
-#     fig_map.savefig(img_stream, format='png')
-#     img_stream.seek(0)
-#
-#     # Create a ZipFile object
-#     with zipfile.ZipFile(f'download.zip', 'w') as zipF:
-#         # Add multiple files to the zip
-#         zipF.writestr('probas_model.csv', csv_bytes)
-#         zipF.writestr('map.png', img_stream.read())
-#
-#     # Create a download button for the zip file
-#     with open(f"download.zip", "rb") as file:
-#         btn = st.download_button(
-#             label="Download results and map",
-#             data=file,
-#             file_name="download.zip",
-#             mime="application/zip"
-#         )
-#
-#     # Remove the zip file
-#     os.remove(f"download.zip")
-#
-#     #st.write("Results and map saved in the provided directory.")
-#     st.write("Results and map downloaded.")
-#
-#
-#
+df_res_to_save = df_res[['x', 'y', 'pred_proba']]
+# rename x and y to longitude and latitude
+df_res_to_save = df_res_to_save.rename(columns={'x': 'longitude', 'y': 'latitude'})
 
-if download:
-    print("Downloading results and map...")
-    # Create in-memory CSV file
-    csv_str = df_res_to_save.to_csv(index=False)
-    csv_bytes = csv_str.encode()
+res_csv = df_res_to_save.to_csv(index=False)
+st.download_button(
+    label="Download predictions CSV",
+    data=res_csv,
+    file_name="probas_model.csv",
+    mime="text/csv",
+)
 
-    # Create in-memory image file
-    img_stream = io.BytesIO()
-    fig_map.savefig(img_stream, format='png')
-    img_stream.seek(0)
 
-    # Create in-memory ZIP file
-    zip_stream = io.BytesIO()
-    with zipfile.ZipFile(zip_stream, 'w') as zipF:
-        # Add multiple files to the zip
-        zipF.writestr('probas_model.csv', csv_bytes)
-        zipF.writestr('map.png', img_stream.getvalue())
+# Download button for the map
+# save map first
+fig_map.savefig("map.png")
 
-    zip_stream.seek(0)
-
-    # Create a download button for the zip file
+with open("map.png", "rb") as file:
     btn = st.download_button(
-        label="Download results and map",
-        data=zip_stream,
-        file_name="download.zip",
-        mime="application/zip"
-    )
-
-    st.write("Results and map downloaded.")
+            label="Download map",
+            data=file,
+            file_name="map.png",
+            mime="image/png"
+          )

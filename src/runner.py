@@ -26,12 +26,6 @@ cfg = {
 }
 
 drop_cats = {'reserve_states': 'not_reserved'}
-# model = ModelBirdLogisticRegression(to_scale=True,
-#                                     to_ohe=True,
-#                                     cfg=cfg,
-#                                     drop_categories=drop_cats,
-#                                     default_drop="first")
-
 
 
 if cfg['features_cat']:
@@ -39,13 +33,13 @@ if cfg['features_cat']:
 else:
     to_ohe = False
 
-# model = ModelBirdLogisticRegression(to_scale=True,
-#                                     to_ohe=to_ohe,
-#                                     cfg=cfg)
+model = ModelBirdLogisticRegression(to_scale=True,
+                                    to_ohe=to_ohe,
+                                    cfg=cfg)
 
-model = ModelBirdMaxEnt(to_scale=True,
-                        to_ohe=to_ohe,
-                        cfg=cfg)
+# model = ModelBirdMaxEnt(to_scale=True,
+#                         to_ohe=to_ohe,
+#                         cfg=cfg)
 
 # model = ModelBirdMaxEnt(to_scale=True,
 #                         to_ohe=True,

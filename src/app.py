@@ -4,8 +4,10 @@ import os
 path = "/Users/user/projects-uni/birds-dist-model"
 os.chdir(path)
 
-from src.utils import *
+import zipfile
+import io
 
+from src.utils import *
 
 
 # TODO: need to specify what are the categorical and continuous features
@@ -23,33 +25,6 @@ def plot_feature_relevance(model, model_name):
 def save_results(df_res, path="results/probas_model.csv"):
     # TODO: maybe mkdir if needed
     df_res.to_csv(path, index=False)
-
-
-def process_and_display_results(cfg, df_res, df_out, df_spc, models_list=None):
-    years = cfg['survey_years']
-    df_spc = df_spc.query('year in @years')
-    df_spc_info = get_spc_info(df_spc, cfg['species'])
-
-    st.table(df_spc_info)
-
-    fig_map, ax_map = plot_probas_on_map(
-                    df_res=df_res,
-                    df_out=df_out,
-                    df_spc=df_spc.query('year in @years'),
-                    spc_list=cfg['species'],
-                    resolution=500,
-                    plot_other_species=True,
-                    plot_nature_reserves=plot_nature_reserves,
-                    reserves=reserves)
-   
-    st.pyplot(fig_map)
-    if plot_feature_importance:
-        if len(models_list) == 1:
-            # for now only plot if one model, because shap values
-            # can be expensive to compute
-            for model in models_list: 
-                fig_fr = plot_feature_relevance(model, cfg['model_name'])
-                st.pyplot(fig_fr)
 
 
 st.title("Species distribution model")
@@ -230,8 +205,64 @@ df_res['y'] = df_res['geometry'].apply(lambda x: x.centroid.y)
 df_res = df_res[['x', 'y', 'geometry', 'pred_proba']]
 df_res_to_save = df_res[['x', 'y', 'pred_proba']]
 
-save_results(df_res)
-process_and_display_results(cfg, df_res, df_out, df_spc, models_list)
+#save_results(df_res)
 
+years = cfg['survey_years']
+df_spc = df_spc.query('year in @years')
+df_spc_info = get_spc_info(df_spc, cfg['species'])
 
+st.table(df_spc_info)
 
+fig_map, ax_map = plot_probas_on_map(
+    df_res=df_res,
+    df_out=df_out,
+    df_spc=df_spc.query('year in @years'),
+    spc_list=cfg['species'],
+    resolution=500,
+    plot_other_species=True,
+    plot_nature_reserves=plot_nature_reserves,
+    reserves=reserves)
+
+# if save_dir:
+#     fig_map.savefig(f"{save_dir}/map.png")  # Saving plot as a png file in the provided directory
+
+st.pyplot(fig_map)
+if plot_feature_importance:
+    if len(models_list) == 1:
+        # for now only plot if one model, because shap values
+        # can be expensive to compute
+        for model in models_list:
+            fig_fr = plot_feature_relevance(model, cfg['model_name'])
+            st.pyplot(fig_fr)
+
+# Specify a save directory
+save_dir = st.text_input("Enter the path where you want to save the results and the map:", "")
+download = st.button("Download results and map")
+
+# ... existing code ...
+
+# If download button is clicked, save results and map
+if download and save_dir:
+    # Create in-memory CSV file
+    csv_str = df_res.to_csv(index=False)
+    csv_bytes = csv_str.encode()
+
+    # Create in-memory image file
+    img_stream = io.BytesIO()
+    fig_map.savefig(img_stream, format='png')
+    img_stream.seek(0)
+
+    # Create a ZipFile object
+    with zipfile.ZipFile(f'{save_dir}/download.zip', 'w') as zipF:
+        # Add multiple files to the zip
+        zipF.writestr('probas_model.csv', csv_bytes)
+        zipF.writestr('map.png', img_stream.read())
+
+    # Create a download button for the zip file
+    with open(f"{save_dir}/download.zip", "rb") as file:
+        btn = st.download_button(
+            label="Download results and map",
+            data=file,
+            file_name="download.zip",
+            mime="application/zip"
+        )

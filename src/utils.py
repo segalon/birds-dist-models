@@ -1,29 +1,18 @@
-import pandas as pd
 import geopandas as gpd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 
-from plotnine import *
 import matplotlib.patches as mpatches
 
 from sklearn.neighbors import NearestNeighbors
 
-import geopandas as gpd
 from scipy.interpolate import griddata
 
 import streamlit as st
 from src.models import *
 
-from sklearn.model_selection import train_test_split
-
-from sklearn.model_selection import LeaveOneOut
 from sklearn.metrics import log_loss
 
 from matplotlib.colors import ListedColormap
-from shapely import wkt
 
-from sklearn.metrics import roc_curve, auc
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import precision_score, recall_score
 from sklearn.metrics import roc_auc_score
@@ -56,7 +45,6 @@ def load_data():
 
 def preproc(df_survey, feature_names, to_impute = True, df_geo=None):
 
-    #cols_to_select = vars_survey + vars_gis + vars_ndvi
     df_survey['date'] = pd.to_datetime(df_survey['date'])
     df_survey['month'] = df_survey['date'].dt.month
     df_survey['year'] = df_survey['date'].dt.year
@@ -158,6 +146,7 @@ def preproc_for_model(df_cls, df_out, cfg):
     
     return X_train, y_train, df_out
 
+
 def run_exp(model,
             df_cls,
             df_out,
@@ -180,15 +169,6 @@ def run_exp(model,
     res['y_pred_train'] = y_pred_train
     res['model'] = model
     res['y_train'] = y_train
-    return res
-
-def run_exp_for_each_species(model, df_cls, df_ar, cfg):
-    res = {}
-    for spc in cfg['species']:
-        spc_cfg = cfg.copy()
-        spc_cfg['species'] = [spc]
-        spc_res = run_exp(model, df_cls, df_ar, cfg=spc_cfg)
-        res[spc] = spc_res
     return res
 
 
@@ -284,17 +264,16 @@ def plot_dot_whisker(coefs_stats, figsize=(5,6), dpi=100):
     to_include = coefs[1:].sort_values(by='abs_coef') 
     fig, ax = plt.subplots(figsize=figsize, dpi=dpi)
     ax.scatter(to_include.coef, range(len(to_include)), color="#1a9988", zorder=2)
-    ax.set_yticks(range(len(to_include)), to_include.index) # label the y axis with the ind. variable names
+    ax.set_yticks(range(len(to_include)), to_include.index)
     ax.set_xlabel("Coefficient Value")
 
     for idx, ci in enumerate(coefs_stats.conf_int().loc[to_include.index].iterrows()):
         ax.hlines(idx, ci[1][0], ci[1][1], color="#eb5600", zorder=1, linewidth=3)
 
-    p = plt.axline((0,0), (0,1), color="#eb5600", linestyle="--") # add a dashed line at 0.0
+    p = plt.axline((0,0), (0,1), color="#eb5600", linestyle="--")
     title = "Coefficients and 95% Confidence Intervals"
     ax.set_title(title)
 
-    #return fig, ax
     return fig
 
 

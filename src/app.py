@@ -236,15 +236,50 @@ if plot_feature_importance:
             st.pyplot(fig_fr)
 
 # Specify a save directory
-save_dir = st.text_input("Enter the path where you want to save the results and the map:", "")
+#save_dir = st.text_input("Enter the path where you want to save the results and the map:", "")
 download = st.button("Download results and map")
 
-# ... existing code ...
-
 # If download button is clicked, save results and map
-if download and save_dir:
+#if download and save_dir:
+# if download:
+#     print("Downloading results and map...")
+#     # Create in-memory CSV file
+#     csv_str = df_res.to_csv(index=False)
+#     csv_bytes = csv_str.encode()
+#
+#     # Create in-memory image file
+#     img_stream = io.BytesIO()
+#     fig_map.savefig(img_stream, format='png')
+#     img_stream.seek(0)
+#
+#     # Create a ZipFile object
+#     with zipfile.ZipFile(f'download.zip', 'w') as zipF:
+#         # Add multiple files to the zip
+#         zipF.writestr('probas_model.csv', csv_bytes)
+#         zipF.writestr('map.png', img_stream.read())
+#
+#     # Create a download button for the zip file
+#     with open(f"download.zip", "rb") as file:
+#         btn = st.download_button(
+#             label="Download results and map",
+#             data=file,
+#             file_name="download.zip",
+#             mime="application/zip"
+#         )
+#
+#     # Remove the zip file
+#     os.remove(f"download.zip")
+#
+#     #st.write("Results and map saved in the provided directory.")
+#     st.write("Results and map downloaded.")
+#
+#
+#
+
+if download:
+    print("Downloading results and map...")
     # Create in-memory CSV file
-    csv_str = df_res.to_csv(index=False)
+    csv_str = df_res_to_save.to_csv(index=False)
     csv_bytes = csv_str.encode()
 
     # Create in-memory image file
@@ -252,17 +287,21 @@ if download and save_dir:
     fig_map.savefig(img_stream, format='png')
     img_stream.seek(0)
 
-    # Create a ZipFile object
-    with zipfile.ZipFile(f'{save_dir}/download.zip', 'w') as zipF:
+    # Create in-memory ZIP file
+    zip_stream = io.BytesIO()
+    with zipfile.ZipFile(zip_stream, 'w') as zipF:
         # Add multiple files to the zip
         zipF.writestr('probas_model.csv', csv_bytes)
-        zipF.writestr('map.png', img_stream.read())
+        zipF.writestr('map.png', img_stream.getvalue())
+
+    zip_stream.seek(0)
 
     # Create a download button for the zip file
-    with open(f"{save_dir}/download.zip", "rb") as file:
-        btn = st.download_button(
-            label="Download results and map",
-            data=file,
-            file_name="download.zip",
-            mime="application/zip"
-        )
+    btn = st.download_button(
+        label="Download results and map",
+        data=zip_stream,
+        file_name="download.zip",
+        mime="application/zip"
+    )
+
+    st.write("Results and map downloaded.")

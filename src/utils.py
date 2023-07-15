@@ -1,6 +1,7 @@
 import geopandas as gpd
 import matplotlib.patches as mpatches
 from matplotlib.colors import ListedColormap
+from shapely.geometry import Point
 
 from scipy.interpolate import griddata
 from sklearn.neighbors import NearestNeighbors
@@ -20,7 +21,16 @@ SEED = 5
 
 @st.cache_data
 def load_data():
-    df_geo = gpd.read_file('data/df_geo.geojson')
+    try:
+        df_geo = gpd.read_file('data/df_geo.geojson')
+    except:
+        # convert to the requiered format if not geojson already, r
+        # reading from csv
+        df_geo = pd.read_csv('data/df_geo.csv')
+        df_geo['geometry'] = df_geo.apply(lambda x: Point(x['longitude'], x['latitude']), axis=1)
+        df_geo = gpd.GeoDataFrame(df_geo, geometry='geometry')
+        df_geo.to_file('data/df_geo.geojson', driver='GeoJSON')
+
     df_survey = pd.read_csv('data/survey_data.csv')
     df_survey_feats = pd.read_csv('data/survey_features.csv')
 

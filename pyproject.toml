@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "birds-dist-model"
+name = "species-distribution-models"
 version = "0.1.0"
 description = ""
 authors = ["Your Name <you@example.com>"]
 readme = "README.md"
-packages = [{include = "birds_dist_model"}]
+packages = [{include = "species_distribution_models"}]
 
 [tool.poetry.dependencies]
 python = "3.9.13"

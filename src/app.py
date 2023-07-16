@@ -1,24 +1,6 @@
 
 from src.utils import *
 
-
-def plot_feature_relevance(model, model_name):
-    """
-    Plot the feature relevance of the model.
-    """
-    if model_name in ["CatBoost", "MaxEnt"]:
-        return model.plot_feature_importances()
-    elif model_name == "Logistic Regression":
-        return plot_dot_whisker(model.model)
-
-
-def save_results(df_res, path="results/probas_model.csv"):
-    # TODO: maybe mkdir if needed
-    df_res.to_csv(path, index=False)
-
-
-
-
 st.title("Species distribution model")
 
 # -------- Load data --------
@@ -26,15 +8,13 @@ st.title("Species distribution model")
 data_path = st.text_input("Enter path to data", "/data")
 df_spc, df_cls, df_out, feature_names, reserves = load_data()
 
-print(reserves)
 
 print("Rows with null values in df_out, dropping them")
 print(df_out[df_out.isnull().any(axis=1)])
 
 df_out = df_out.dropna()
 
-#min_obs = 5
-min_obs = 20
+min_obs = 10
 df_spc = df_spc.groupby('species').filter(lambda x: len(x) >= min_obs)
 
 feature_types = infer_feature_types(df_spc[feature_names])
@@ -171,7 +151,6 @@ if to_threshold:
 run_model = st.button("Run model")
 
 
-
 if not run_model:
     st.stop()
 
@@ -193,6 +172,7 @@ aggregation_type = "Treat separately"
 to_ohe = len(variables_cat) > 0
 
 if aggregation_type == "Group together":
+    # currently not available
     model = model_class(to_scale=True, to_ohe=False, cfg=cfg)
     res = run_exp(model, df_cls, df_out, cfg=cfg)
     probas_list = [res['y_pred_out']]
@@ -261,7 +241,6 @@ if plot_feature_importance:
 
 
 df_res_to_save = df_res[['x', 'y', 'pred_proba']]
-# rename x and y to longitude and latitude
 df_res_to_save = df_res_to_save.rename(columns={'x': 'longitude', 'y': 'latitude',
                                                 'pred_proba': 'probability'})
 

@@ -452,3 +452,13 @@ def infer_feature_types(df, unique_threshold=0.1):
 
     return inferred_types
 
+
+def plot_feature_relevance(model, model_name):
+    """
+    Plot the feature relevance of the model.
+    """
+    if model_name in ["CatBoost", "MaxEnt"]:
+        return model.plot_feature_importances()
+    elif model_name == "Logistic Regression":
+        return plot_dot_whisker(model.model)
+

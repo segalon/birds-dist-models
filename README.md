@@ -27,6 +27,8 @@ At least 3 files are needed to run the model:
 | 0 | 2018-02-16 | 30.15626 | 34.80496  | survey_name2018  | species A | LC                  | proposed_reservation |
 
 
+At least 10 observations from the species in interest are required.
+
 - survey_features.csv: survey features file, where each row corresponds to an observation in the survey data file, and the columns are the features. 
 The features can be categorical or numerical. For example:
 
@@ -51,6 +53,7 @@ POLYGON ((35.01329194886916 29.92970855514185, 35.01432761819664 29.929710051883
 - Optional: reserve.shp file for plotting reservations on the probability map.
 
 They should be placed in a data folder which can be specified in the streamlit app, the default path is the data folder in the project directory.
+
 
 
 ## Models

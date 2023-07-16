@@ -159,6 +159,14 @@ if len(selected_species) > 1:
 else:
     agg_method = 'mean'
 
+to_threshold = st.checkbox("To threshold probabilities", value=False)
+if to_threshold:
+    # threshold for every species, loop over selected species
+    thresholds = {}
+    for spc in selected_species:
+        thresholds[spc] = st.slider(f"Threshold for {spc}", 0.0, 1.0, 0.05)
+
+
 # button for running the model
 run_model = st.button("Run model")
 
@@ -201,6 +209,9 @@ else:  # Treat separately
         models_list.append(model_single_species)
     probas_list = np.array(probas_list)
 
+if to_threshold:
+    for i, spc in enumerate(selected_species):
+        probas_list[i] = (probas_list[i] > thresholds[spc]).astype(int)
 
 
 if agg_method == 'mean':
@@ -211,6 +222,7 @@ elif agg_method == 'min':
     probas = np.min(probas_list, axis=0)
 elif agg_method == 'median':
     probas = np.median(probas_list, axis=0)
+
 
 df_res = df_out.copy()
 df_res['pred_proba'] = probas

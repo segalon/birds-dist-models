@@ -1,5 +1,5 @@
 
-# birds-dist-models
+# species-distribution-models
 
 This project provides a Streamlit application for running species distribution models. The user can select various parameters, including the model type, survey years, conservation ranks, species, and the variables.
 The output is a map and a table of the species distribution.

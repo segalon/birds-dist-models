@@ -52,7 +52,7 @@ POLYGON ((35.01329194886916 29.92970855514185, 35.01432761819664 29.929710051883
 
 - Optional: reserve.shp file for plotting reservations on the probability map.
 
-They should be placed in a data folder which can be specified in the streamlit app, the default path is the data folder in the project directory.
+The files should be placed in a data folder which can be specified in the streamlit app, the default path is the data folder in the project directory.
 
 
 

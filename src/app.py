@@ -23,8 +23,9 @@ st.title("Species distribution model")
 
 # -------- Load data --------
 
-
+data_path = st.text_input("Enter path to data", "/data")
 df_spc, df_cls, df_out, feature_names, reserves = load_data()
+
 print(reserves)
 
 print("Rows with null values in df_out, dropping them")

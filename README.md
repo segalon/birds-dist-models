@@ -61,7 +61,7 @@ The following models are currently available:
 
 
 ## Example output
-<img src="images/map1.png" width="50">
+<img src="images/map1.png" width="250">
 
             
 

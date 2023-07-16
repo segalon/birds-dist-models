@@ -30,7 +30,6 @@ features['cat'] = [f for f in feature_names if feature_types[f] == 'Categorical'
 available_models = ['CatBoost', 'Logistic Regression', 'MaxEnt']
 selected_model = st.selectbox("Select model", available_models)
 
-
 # select model class
 model_class = None
 if selected_model == 'CatBoost':
@@ -74,19 +73,16 @@ available_species = (
 available_species = list(available_species['species'].unique())
 available_species.sort()
 
-
 container_species = st.container()
 all_species = st.checkbox("Select all species")
 if all_species:
     selected_species = container_species.multiselect("Select species", 
         available_species, available_species)  
 else:
-    selected_species =  container_species.multiselect("Select species",
+    selected_species = container_species.multiselect("Select species",
         available_species)
 
-# if not selected then say "please select species"
 if len(selected_species) == 0:
-    #st.write("Please select species")
     st.stop()
 
 st.subheader("Select continuous variables")
@@ -141,15 +137,12 @@ else:
 
 to_threshold = st.checkbox("To threshold probabilities", value=False)
 if to_threshold:
-    # threshold for every species, loop over selected species
     thresholds = {}
     for spc in selected_species:
         thresholds[spc] = st.slider(f"Threshold for {spc}", 0.0, 1.0, 0.05)
 
-
 # button for running the model
 run_model = st.button("Run model")
-
 
 if not run_model:
     st.stop()
@@ -193,7 +186,6 @@ if to_threshold:
     for i, spc in enumerate(selected_species):
         probas_list[i] = (probas_list[i] > thresholds[spc]).astype(int)
 
-
 if agg_method == 'mean':
     probas = np.mean(probas_list, axis=0)
 elif agg_method == 'max':
@@ -202,7 +194,6 @@ elif agg_method == 'min':
     probas = np.min(probas_list, axis=0)
 elif agg_method == 'median':
     probas = np.median(probas_list, axis=0)
-
 
 df_res = df_out.copy()
 df_res['pred_proba'] = probas
@@ -226,9 +217,6 @@ fig_map, ax_map = plot_probas_on_map(
     plot_other_species=True,
     plot_nature_reserves=plot_nature_reserves,
     reserves=reserves)
-
-# if save_dir:
-#     fig_map.savefig(f"{save_dir}/map.png")  # Saving plot as a png file in the provided directory
 
 st.pyplot(fig_map)
 if plot_feature_importance:

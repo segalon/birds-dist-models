@@ -2,6 +2,7 @@ import geopandas as gpd
 import matplotlib.patches as mpatches
 from matplotlib.colors import ListedColormap
 from shapely.geometry import Point
+from shapely import wkt
 
 from scipy.interpolate import griddata
 from sklearn.neighbors import NearestNeighbors
@@ -25,7 +26,7 @@ def load_data():
         df_geo = gpd.read_file('data/df_geo.geojson')
     except:
         df_geo = pd.read_csv('data/df_geo.csv')
-        df_geo['geometry'] = df_geo.apply(lambda x: Point(x['longitude'], x['latitude']), axis=1)
+        df_geo['geometry'] = df_geo['geometry'].apply(wkt.loads)
         df_geo = gpd.GeoDataFrame(df_geo, geometry='geometry')
         df_geo.to_file('data/df_geo.geojson', driver='GeoJSON')
 

@@ -2,7 +2,6 @@
 from src.utils import *
 
 
-
 def plot_feature_relevance(model, model_name):
     """
     Plot the feature relevance of the model.
@@ -24,34 +23,8 @@ st.title("Species distribution model")
 
 # -------- Load data --------
 
-@st.cache_data
-def load_data_streamlit():
-    # specify the data directory with streamlit as path
 
-
-
-    df_geo = pd.read_csv('data/df_geo.csv')
-    df_geo['geometry'] = df_geo['geometry'].apply(wkt.loads)
-    df_geo = gpd.GeoDataFrame(df_geo, geometry='geometry')
-    df_geo.to_file('data/df_geo.geojson', driver='GeoJSON')
-
-    df_survey = pd.read_csv('data/survey_data.csv')
-    df_survey_feats = pd.read_csv('data/survey_features.csv')
-
-    feature_names = df_survey_feats.columns.tolist()
-
-    df_survey = pd.concat([df_survey, df_survey_feats], axis=1)
-
-    df_spc, df_survey = preproc(df_survey, feature_names, to_impute=True, df_geo=df_geo)
-    try:
-        reserves = gpd.read_file('data/reserves.shp')
-    except:
-        reserves = None
-
-    return df_spc, df_survey, df_geo, feature_names, reserves
-
-
-#df_spc, df_cls, df_out, feature_names, reserves = load_data()
+df_spc, df_cls, df_out, feature_names, reserves = load_data()
 print(reserves)
 
 print("Rows with null values in df_out, dropping them")

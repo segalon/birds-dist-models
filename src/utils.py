@@ -21,17 +21,19 @@ DEBUG = False
 SEED = 5
 
 @st.cache_data
-def load_data():
+def load_data(path_data='data/'):
     try:
-        df_geo = gpd.read_file('data/df_geo.geojson')
+        df_geo = gpd.read_file('{}df_geo.geojson'.format(path_data))
     except:
-        df_geo = pd.read_csv('data/df_geo.csv')
+        df_geo = pd.read_csv('{}df_geo.csv'.format(path_data))
+
         df_geo['geometry'] = df_geo['geometry'].apply(wkt.loads)
         df_geo = gpd.GeoDataFrame(df_geo, geometry='geometry')
-        df_geo.to_file('data/df_geo.geojson', driver='GeoJSON')
+        df_geo.to_file('{}df_geo.geojson'.format(path_data), driver='GeoJSON')
 
-    df_survey = pd.read_csv('data/survey_data.csv')
-    df_survey_feats = pd.read_csv('data/survey_features.csv')
+    # df_survey = pd.read_csv('data/survey_data.csv')
+    df_survey = pd.read_csv('{}survey_data.csv'.format(path_data))
+    df_survey_feats = pd.read_csv('{}survey_features.csv'.format(path_data))
 
     feature_names = df_survey_feats.columns.tolist()
 
@@ -39,7 +41,7 @@ def load_data():
 
     df_spc, df_survey = preproc(df_survey, feature_names, to_impute=True, df_geo=df_geo)
     try:
-        reserves = gpd.read_file('data/reserves.shp')
+        reserves = gpd.read_file('{}reserves.shp'.format(path_data))
     except:
         reserves = None
 

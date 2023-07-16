@@ -61,7 +61,15 @@ The following models are currently available:
 
 
 ## Example output
-![map1](images/map1.png)
+<img src="images/map1.png" width="50">
+
+            
+
+
+
+
+
+
 
 
 

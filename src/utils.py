@@ -31,7 +31,6 @@ def load_data(path_data='data/'):
         df_geo = gpd.GeoDataFrame(df_geo, geometry='geometry')
         df_geo.to_file('{}df_geo.geojson'.format(path_data), driver='GeoJSON')
 
-    # df_survey = pd.read_csv('data/survey_data.csv')
     df_survey = pd.read_csv('{}survey_data.csv'.format(path_data))
     df_survey_feats = pd.read_csv('{}survey_features.csv'.format(path_data))
 

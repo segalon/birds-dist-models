@@ -11,11 +11,12 @@ Clone the repository, install the dependencies, and in the project directory, ru
 streamlit run src/app.py
 ```
 If there are path issues you might need to run the following command first:
-
 ```
 export PYTHONPATH="PROJECT_PATH"
 ```
 where PROJECT_PATH is the path to the project directory.
+
+Recommended to run with Python 3.9.13.
 
 
 ## Data

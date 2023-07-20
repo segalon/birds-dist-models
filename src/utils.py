@@ -11,9 +11,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import precision_score, recall_score
 from sklearn.metrics import roc_auc_score
 
-from src.models import *
-
 import streamlit as st
+
+from src.models import *
 
 #DEBUG = True
 DEBUG = False
@@ -155,7 +155,7 @@ def run_exp(model,
             df_cls,
             df_out,
             cfg=None,
-            with_arava_preds=True):
+            out_preds=True):
 
     X_train, y_train, df_out = preproc_for_model(df_cls, df_out, cfg)
 
@@ -165,7 +165,7 @@ def run_exp(model,
     res = dict()
     features = cfg['features']
 
-    if with_arava_preds:
+    if out_preds:
         X_out = df_out[features]
         y_pred_out = model.predict_proba(X_out)
         res['y_pred_out'] = y_pred_out
@@ -296,76 +296,6 @@ def get_spc_info(df_birds, spc):
     dfs['percent_in_year'] = 100 * dfs['number_observations'] / num_total_obs
     dfs['percent_in_year'] = dfs['percent_in_year'].round(2)
     return dfs
-
-
-def process_ndvi(df_gis, df_ar):
-    print("Processing NDVI data...")
-    df_gis = df_gis.copy()
-    df_ar = df_ar.copy()
-
-    df_ndvi = pd.read_csv("data/NDVI_DATA_2017_2020.csv")
-    df_ndvi = df_ndvi.drop(columns=["Unnamed: 0"])
-    df_ndvi = df_ndvi.rename(columns={"latitude": "y", 
-                                      "longitude": "x",
-                                      "NDVI": "ndvi"})
-
-    df_ndvi['date'] = pd.to_datetime(df_ndvi['datetime'])
-    # without hours and minutes
-    df_ndvi['date'] = df_ndvi['date'].dt.date
-    df_ndvi['date'] = pd.to_datetime(df_ndvi['date'])
-    # remove datetime col
-    df_ndvi = df_ndvi.drop(columns=["datetime"])
-
-    df_ndvi_year = (
-        df_ndvi
-        .assign(year_prev=lambda x: x.date.dt.year)
-        .assign(year=lambda x: x.date.dt.year + 1)
-        .groupby(["y", "x", "year"])
-        .mean("ndvi")
-        .reset_index(drop=False)
-    )
-
-    def find_closest_ndvi(row, df_ndvi, by_year=False):
-        x_diff = np.abs(df_ndvi['x'] - row['x'])
-        y_diff = np.abs(df_ndvi['y'] - row['y'])
-        if by_year:
-            date_diff = np.abs(df_ndvi['year'] - row['year'])
-        else:
-            date_diff = np.abs((df_ndvi['date'] - row['date']).dt.days)
-        total_diff = y_diff + x_diff + date_diff
-        return df_ndvi.loc[total_diff.idxmin(), 'ndvi']
-
-    df_gis['date'] = pd.to_datetime(df_gis['date'])
-
-    if DEBUG:
-        df_gis = df_gis.sample(frac=0.1, random_state=42).reset_index(drop=True)
-        df_ar = df_ar.sample(frac=0.1, random_state=42).reset_index(drop=True)
-
-    print("Processing NDVI data for survey...")
-
-    df_gis_ndvi = df_gis.copy()
-    df_gis_ndvi['ndvi'] = df_gis_ndvi.apply(find_closest_ndvi, args=(df_ndvi, False), axis=1)
-    df_gis_ndvi['ndvi_prev_year'] = df_gis_ndvi.apply(find_closest_ndvi, args=(df_ndvi_year, True), axis=1)
-    df_gis_ndvi.to_csv("./data/birds_survey_gis_ndvi.csv", index=False)
-
-    print("Processing NDVI data for AR...")
-
-    df_ar['date'] = df_gis_ndvi['date'].max()
-    df_ar['date'] = pd.to_datetime(df_ar['date'])
-    df_ar['year'] = df_ar['date'].dt.year
-
-    df_ar['ndvi'] = df_ar.apply(find_closest_ndvi, args=(df_ndvi, False), axis=1)
-    df_ar['ndvi_prev_year'] = df_ar.apply(find_closest_ndvi, args=(df_ndvi_year, True), axis=1)
-
-    for col in df_ar.columns:
-        if df_ar[col].dtype == 'object':
-            df_ar[col] = df_ar[col].astype(str)
-
-    df_ar.to_file("data/df_ar_sub_ndvi.geojson")
-    df_ndvi.to_csv("data/df_ndvi.csv", index=False)
-
-    return df_gis_ndvi, df_ar, df_ndvi
-
 
 
 def cross_validate_per_species(model_class, df, species_list, cfg, test_size=0.2):

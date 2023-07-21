@@ -6,7 +6,7 @@ The output is a table and map of the species distribution.
 
 
 ## Usage
-Clone the repository, install the dependencies, and in the project directory, run the following command in the terminal:
+Clone the repository, install the dependencies, make a data directory as specified in the section below, and in the project directory run the following command in the terminal:
 ```
 streamlit run src/app.py
 ```

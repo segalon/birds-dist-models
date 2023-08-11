@@ -61,7 +61,7 @@ The none geometry columns should be the same features as in the survey data file
 POLYGON ((35.01329194886916 29.92970855514185, 35.01432761819664 29.929710051883198, 35.0143259044598 29.930612145604048, 35.01329022579183 29.93061064880832, 35.01329194886916 29.92970855514185))
 ```
 
-- Optional: *reserve.shp/dbf/cpg/prj/shx* files for plotting reservations on the probability map.
+- Optional: **reserve.shp/dbf/cpg/prj/shx** files for plotting reservations on the probability map.
 
 
 The files should be placed in a data folder which can be specified in the streamlit app, the default path is the data folder in the project directory.

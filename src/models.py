@@ -1,29 +1,23 @@
-from statsmodels.discrete.discrete_model import Logit
-import statsmodels.api as sm
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import shap
-
 import seaborn as sns
+import shap
+from statsmodels.discrete.discrete_model import Logit
+import statsmodels.api as sm
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import make_column_transformer
 from sklearn.pipeline import make_pipeline
-
 from sklearn.pipeline import Pipeline
-
 from sklearn.base import BaseEstimator, TransformerMixin
-
-from catboost import CatBoostClassifier
-
 from sklearn.utils.class_weight import compute_class_weight
 
+from catboost import CatBoostClassifier
 import elapid as ela
 
 SEED = 5
-
 
 class CategoricalToString(BaseEstimator, TransformerMixin):
     def __init__(self, features_cat):

@@ -16,27 +16,37 @@ export PYTHONPATH="PROJECT_PATH"
 ```
 where PROJECT_PATH is the path to the project directory.
 
-Recommended to run with Python 3.9.13.
+## Dependencies
+- **python**: 3.9.13
+- **numpy**: 1.23.1
+- **streamlit**: ^1.24.1
+- **pandas**: 1.5.3
+- **catboost**: ^1.2
+- **shap**: ^0.42.0
+- **scikit-learn**: ^1.3.0
+- **geopandas**: ^0.13.2
+- **plotnine**: ^0.12.1
+- **seaborn**: ^0.12.2
+- **elapid**: ^1.0.1
 
 
 ## Data
-At least 3 files are needed to run the model:
-- survey_data.csv: the survey data file, in the following format:
+At least 2 files are needed to run the model:
+- survey.csv: the survey data file, whose first 7 columns are survey information which do not correspond to features for the predictive model, they are in the following format:
 
 |   | date       | latitude | longitude | survey_name      | species   | conservation_status | reserve_status       |
 |---|------------|----------|-----------|------------------|-----------|---------------------|----------------------|
 | 0 | 2018-02-16 | 30.15626 | 34.80496  | survey_name2018  | species A | LC                  | proposed_reservation |
 
 
-At least 10 observations from the species in interest are required.
-
-- survey_features.csv: survey features file, where each row corresponds to an observation in the survey data file, and the columns are the features. 
+The rest of the columns are the features for the predictive model which correspond to this survey sample.
 The features can be categorical or numerical. For example:
 
 |   | mean_annual_rainfall | mean_temp_jan | mean_temp_aug | max_temp_june | min_temp_jan |
 |---|----------------------|---------------|---------------|---------------|--------------|
 | 0 | 52.598541            | 10.856188     | 26.866346     | 39.453480     | 3.031685    |
 
+At least 10 observations from the species in interest are required.
 
 - df_geo.csv or df_geo.geojson, a csv or geojson file for the predictions of the model outside the survey, in the following format:
 
@@ -60,7 +70,7 @@ The files should be placed in a data folder which can be specified in the stream
 ## Models
 The following models are currently available:
 - Logistic regression
-- MaxEnt (using rpy2 to run the R package)
+- MaxEnt
 - Catboost
 
 

@@ -1,7 +1,7 @@
 
 # species-distribution-models
 
-This project provides a Streamlit application for running species distribution models. The user can select various parameters, including the model type, survey years, conservation ranks, species, and the variables.
+This project provides a Streamlit application for running species distribution models. The user can select various parameters, including the model type, survey years, conservation ranks, species, and the features for the predictive model.
 The output is a table and map of the species distribution.
 
 
@@ -32,7 +32,7 @@ where PROJECT_PATH is the path to the project directory.
 
 ## Data
 At least 2 files are needed to run the model:
-- survey.csv: the survey data file, whose first 7 columns are survey information which do not correspond to features for the predictive model, they are in the following format:
+- **survey.csv**: the survey data file, whose first 7 columns are survey information which do not correspond to features for the predictive model, they are in the following format:
 
 |   | date       | latitude | longitude | survey_name      | species   | conservation_status | reserve_status       |
 |---|------------|----------|-----------|------------------|-----------|---------------------|----------------------|
@@ -48,20 +48,19 @@ The features can be categorical or numerical. For example:
 
 At least 10 observations from the species in interest are required.
 
-- df_geo.csv or df_geo.geojson, a csv or geojson file for the predictions of the model outside the survey, in the following format:
+- **df_geo.csv** or **df_geo.geojson**, a csv or geojson file which contain the features used for predictions of the model outside the survey, in the following format:
 
 |   | mean_annual_rainfall | mean_temp_jan | mean_temp_aug | max_temp_june | min_temp_jan | geometry |
 |---|----------------------|---------------|---------------|---------------|--------------|----------|
 | 0 | 36.517059            | 12.024206     | 29.077404     | 38.498764     | 3.663723    | POLYGON ((35.01329 29.92971, 35.01433 29.92971... |
 
-
-where the geometry column contains a polygon in the format:
-
+The none geometry columns should be the same features as in the survey data file, and the geometry column should contain a polygon in the format:
 ```
 POLYGON ((35.01329194886916 29.92970855514185, 35.01432761819664 29.929710051883198, 35.0143259044598 29.930612145604048, 35.01329022579183 29.93061064880832, 35.01329194886916 29.92970855514185))
 ```
 
-- Optional: reserve.shp file for plotting reservations on the probability map.
+- Optional: *reserve.shp/dbf/cpg/prj/shx* files for plotting reservations on the probability map.
+
 
 The files should be placed in a data folder which can be specified in the streamlit app, the default path is the data folder in the project directory.
 

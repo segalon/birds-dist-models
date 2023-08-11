@@ -54,7 +54,7 @@ class ModelBird:
 
         if self.to_ohe:
             cat_to_str = CategoricalToString(self.features_cat)
-            ohe = OneHotEncoder(handle_unknown='ignore', drop=drop_cats)
+            ohe = OneHotEncoder(handle_unknown='ignore', drop=drop_cats, sparse_output=False)
             transformers.append((make_pipeline(cat_to_str, ohe), self.features_cat))
         if len(transformers) == 0:
             self.transformer = None

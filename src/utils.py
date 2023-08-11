@@ -15,9 +15,6 @@ import streamlit as st
 
 from src.models import *
 
-#DEBUG = True
-DEBUG = False
-
 SEED = 5
 
 @st.cache_data
@@ -31,12 +28,12 @@ def load_data(path_data='data/'):
         df_geo = gpd.GeoDataFrame(df_geo, geometry='geometry')
         df_geo.to_file('{}df_geo.geojson'.format(path_data), driver='GeoJSON')
 
-    df_survey = pd.read_csv('{}survey_data.csv'.format(path_data))
-    df_survey_feats = pd.read_csv('{}survey_features.csv'.format(path_data))
-
-    feature_names = df_survey_feats.columns.tolist()
-
-    df_survey = pd.concat([df_survey, df_survey_feats], axis=1)
+    df_survey = pd.read_csv('{}survey.csv'.format(path_data))
+    cols_survey_point = ['date', 'latitude', 'longitude', 'survey_name', 'species', 'conservation_status', 'reserve_status']
+    
+    # feature names are all the columns except the ones in cols_survey_point
+    feature_names = df_survey.columns.tolist()
+    feature_names = [f for f in feature_names if f not in cols_survey_point]
 
     df_spc, df_survey = preproc(df_survey, feature_names, to_impute=True, df_geo=df_geo)
     try:

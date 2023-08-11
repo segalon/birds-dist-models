@@ -1,36 +1,21 @@
-from statsmodels.discrete.discrete_model import Logit
-import statsmodels.api as sm
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import shap
-
 import seaborn as sns
+import shap
+from statsmodels.discrete.discrete_model import Logit
+import statsmodels.api as sm
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import make_column_transformer
 from sklearn.pipeline import make_pipeline
-
 from sklearn.pipeline import Pipeline
-
 from sklearn.base import BaseEstimator, TransformerMixin
-
-from catboost import CatBoostClassifier
-
 from sklearn.utils.class_weight import compute_class_weight
 
-import rpy2.robjects as robjects
-from rpy2.robjects import pandas2ri
-from rpy2.robjects.packages import importr
-
-pandas2ri.activate()
-
-base = importr('base')
-maxent = importr('dismo')
-
-#DEBUG = True
-DEBUG = False
+from catboost import CatBoostClassifier
+import elapid as ela
 
 SEED = 5
 
@@ -69,7 +54,7 @@ class ModelBird:
 
         if self.to_ohe:
             cat_to_str = CategoricalToString(self.features_cat)
-            ohe = OneHotEncoder(handle_unknown='ignore', drop=drop_cats)
+            ohe = OneHotEncoder(handle_unknown='ignore', drop=drop_cats, sparse_output=False)
             transformers.append((make_pipeline(cat_to_str, ohe), self.features_cat))
         if len(transformers) == 0:
             self.transformer = None
@@ -95,10 +80,6 @@ class ModelBirdLogisticRegression(ModelBird):
         super().__init__(to_scale=to_scale, to_ohe=to_ohe, cfg=cfg, drop_cats=drop_cats)
 
     def fit(self, X, y):
-        if DEBUG:
-            X_orig = X.copy()
-            print(X_orig.head())
-
         X = self.transformer.fit_transform(X)
 
         # Get column names from the transformer
@@ -166,9 +147,10 @@ class ModelBirdCatBoost(ModelBird):
                                         cat_features=self.cat_features,
                                         class_weights=class_weights)
 
+        self.model.fit(X, y)
+        
         self.X_train = X
         self.y_train = y
-        self.model.fit(X, y)
         return self
 
     def predict(self, X):
@@ -178,11 +160,7 @@ class ModelBirdCatBoost(ModelBird):
         threshold = self.cfg.get('threshold', 0.5)
         return (self.predict_proba(X) > threshold).astype(int)
 
-
     def predict_proba(self, X):
-        """
-        Predict the probability of bird presence using the catboost model.
-        """
         return self.model.predict_proba(X)[:, 1]
 
     def summary(self):
@@ -200,10 +178,9 @@ class ModelBirdCatBoost(ModelBird):
 class ModelBirdMaxEnt(ModelBird):
     def __init__(self, to_scale=True, to_ohe=True, cfg=None, drop_cats=[]):
         super().__init__(to_scale=to_scale, to_ohe=to_ohe, cfg=cfg, drop_cats=drop_cats)
-        self.model_r = None
-        self.fimps = None
+        self.model = None
 
-    def fit(self, X, y):
+    def fit(self, X, y, max_ent_params=None):
         X = self.transformer.fit_transform(X)
         # Get column names from the transformer
         column_names = []
@@ -213,35 +190,29 @@ class ModelBirdMaxEnt(ModelBird):
             elif isinstance(trans, Pipeline) and isinstance(trans.named_steps['onehotencoder'], OneHotEncoder):
                 column_names.extend(trans.named_steps['onehotencoder'].get_feature_names_out(columns))
 
-        self.X_with_colnames = pd.DataFrame(X, columns=column_names)
+        X_with_colnames = pd.DataFrame(X, columns=column_names)
+        if max_ent_params is not None:
+            self.model = ela.MaxentModel(**max_ent_params)
+        else:
+            self.model = ela.MaxentModel()
 
-        X = pd.DataFrame(X)
-        X_r = pandas2ri.py2rpy(X)
-        y_r = robjects.IntVector(y)
-        self.model = maxent.maxent(X_r, y_r)
-        self.model_r = pandas2ri.py2rpy(self.model)
+        self.model.fit(X_with_colnames, y)
+
+        self.X_train = X_with_colnames
+        self.y_train = y
+        
         return self
 
-
     def predict_proba(self, X):
-        if isinstance(X, np.ndarray):
-            X = pd.DataFrame(X, columns=self.col_names)
-        X = self.transformer.transform(X.copy())
-        X = pd.DataFrame(X)
-        X_r = pandas2ri.py2rpy(X)
-        preds = robjects.r.predict(self.model_r, X_r, type="response")
-        preds_py = np.array(preds)
-        return preds_py
+        X = self.transformer.transform(X)
+        return self.model.predict_proba(X)[:, 1]
 
     def predict(self, X):
         """
         Predict bird presence using the maxent model.
         """
         threshold = self.cfg.get('threshold', 0.5)  
-        preds = self.predict_proba(X)
-        preds[preds >= threshold] = 1
-        preds[preds < threshold] = 0
-        return preds
+        return (self.predict_proba(X) > threshold).astype(int)
 
     def summary(self):
         return self.model

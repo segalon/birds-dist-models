@@ -30,7 +30,7 @@ where PROJECT_PATH is the path to the project directory.
 - **elapid**: ^1.0.1
 
 The python version is constrained due to `numba` which seems to have issues with some python versions.
-It is Recommended to configure the environment with Poetry.
+It is recommended to configure the environment with Poetry.
 
 ## Data
 At least 2 files are needed to run the model:

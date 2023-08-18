@@ -15,7 +15,6 @@ import streamlit as st
 
 from src.models import *
 
-SEED = 5
 
 @st.cache_data
 def load_data(path_data='data/'):
@@ -292,68 +291,6 @@ def get_spc_info(df_birds, spc):
     dfs['percent_in_year'] = 100 * dfs['number_observations'] / num_total_obs
     dfs['percent_in_year'] = dfs['percent_in_year'].round(2)
     return dfs
-
-
-def cross_validate_per_species(model_class, df, species_list, cfg, test_size=0.2):
-    df = df.copy()
-    results = pd.DataFrame(
-        columns=['species', 
-                 'num_samples_total',
-                 'num_samples_train',
-                 'num_samples_val',
-                 'train_auc', 'val_auc',
-                 'train_precision', 'val_precision',
-                 'train_recall', 'val_recall',
-                 'train_log_loss', 'val_log_loss'
-                 ]
-    )
-
-    # Iterate over each species
-    for species in species_list:
-        print(species)
-        cfg['species'] = [species]
-
-        X, y, _ = preproc_for_model(df, None, cfg=cfg)
-        X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=test_size, random_state=SEED)
-
-        model = model_class(cfg=cfg)
-        model.fit(X_train, y_train)
-
-        train_auc = roc_auc_score(y_train, model.predict_proba(X_train))
-        val_auc = roc_auc_score(y_val, model.predict_proba(X_val))
-
-        train_log_loss = log_loss(y_train, model.predict_proba(X_train).astype(np.float64))
-        val_log_loss = log_loss(y_val, model.predict_proba(X_val).astype(np.float64))
-
-        y_train_pred = model.predict(X_train)
-        train_precision = precision_score(y_train, y_train_pred)
-        train_recall = recall_score(y_train, y_train_pred)
-
-        y_val_pred = model.predict(X_val)
-        val_precision = precision_score(y_val, y_val_pred)
-        val_recall = recall_score(y_val, y_val_pred)
-
-        num_train = np.sum(y_train == 1)
-        num_val = np.sum(y_val == 1)
-        num_total = num_train + num_val
-
-        # Record results
-        results = results.append({
-            'species': species,
-            'num_samples_total': num_total,
-            'num_samples_train': num_train,
-            'num_samples_val': num_val,
-            'train_auc': train_auc,
-            'val_auc': val_auc,
-            'train_precision': train_precision,
-            'val_precision': val_precision,
-            'train_recall': train_recall,
-            'val_recall': val_recall,
-            'train_log_loss': train_log_loss,
-            'val_log_loss': val_log_loss
-        }, ignore_index=True)
-
-    return results
 
 
 def infer_feature_types(df, unique_threshold=0.1):
